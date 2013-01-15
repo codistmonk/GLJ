@@ -91,6 +91,7 @@ public abstract class Scene implements GLEventListener {
 	
 	@Override
 	public final void dispose(final GLAutoDrawable drawable) {
+		debugPrint();
 		this.updateDrawable(drawable);
 		
 		this.dispose();
@@ -157,6 +158,7 @@ public abstract class Scene implements GLEventListener {
 	
 	protected void initialize() {
 		this.getGL().glEnable(GL_DEPTH_TEST); this.debugGL();
+		this.getGL().glClearColor(0.0F, 0.0F, 0.0F, 0.0F);
 	}
 	
 	protected void dispose() {

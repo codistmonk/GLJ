@@ -30,6 +30,7 @@ import java.util.Collection;
 import java.util.Scanner;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL4;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLDebugListener;
@@ -287,7 +288,7 @@ public final class Demo {
 				
 			});
 			
-			final Shader vertexShader = this.new Shader(GL4.GL_VERTEX_SHADER)
+			final Shader vertexShader = this.new Shader(GL2ES2.GL_VERTEX_SHADER)
 			.appendLine("#version " + this.getGLSL().getVersion())
 			.appendLine("")
 			.appendLine("uniform mat4 projection;")
@@ -306,7 +307,7 @@ public final class Demo {
 			.appendLine("}")
 			;
 			
-			final Shader fragmentShader = this.new Shader(GL4.GL_FRAGMENT_SHADER)
+			final Shader fragmentShader = this.new Shader(GL2ES2.GL_FRAGMENT_SHADER)
 			.appendLine("#version " + this.getGLSL().getVersion())
 			.appendLine("")
 			.appendLine(this.getGLSL().getVaryingIn() + " vec4 fragmentInputColor;")
