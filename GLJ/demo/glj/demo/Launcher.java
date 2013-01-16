@@ -12,7 +12,7 @@ public final class Launcher {
 	 * <br>Maybe null
 	 */
 	public static final void main(final String[] arguments) {
-		LauncherTools.launch(null, Demo.class, arguments);
+		LauncherTools.launch(null, TabularDataPlotter.class, arguments);
 	}
 	
 }
