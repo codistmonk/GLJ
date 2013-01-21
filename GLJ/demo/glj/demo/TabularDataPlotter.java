@@ -1,5 +1,6 @@
 package glj.demo;
 
+import static java.util.Collections.synchronizedList;
 import static javax.swing.SwingUtilities.invokeLater;
 import static net.sourceforge.aprog.af.AFTools.newAboutItem;
 import static net.sourceforge.aprog.af.AFTools.newPreferencesItem;
@@ -8,26 +9,26 @@ import static net.sourceforge.aprog.i18n.Messages.setMessagesBase;
 import static net.sourceforge.aprog.swing.SwingTools.horizontalBox;
 import static net.sourceforge.aprog.swing.SwingTools.menuBar;
 import static net.sourceforge.aprog.swing.SwingTools.packAndCenter;
-import static net.sourceforge.aprog.swing.SwingTools.scrollable;
 import static net.sourceforge.aprog.swing.SwingTools.useSystemLookAndFeel;
 import static net.sourceforge.aprog.swing.SwingTools.verticalSplit;
 import static net.sourceforge.aprog.swing.SwingTools.I18N.menu;
 import static net.sourceforge.aprog.tools.Tools.debugPrint;
 import static net.sourceforge.aprog.tools.Tools.getThisPackagePath;
-
-import glj.Scene;
+import glj.demo.TabularDoubleData.Column;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Graphics;
+import java.awt.GridLayout;
 import java.awt.dnd.DropTarget;
 import java.awt.dnd.DropTargetDragEvent;
 import java.awt.dnd.DropTargetDropEvent;
 import java.awt.dnd.DropTargetEvent;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
@@ -37,15 +38,14 @@ import javax.media.opengl.GLProfile;
 import javax.media.opengl.GLProfile.ShutdownType;
 import javax.media.opengl.awt.GLCanvas;
 import javax.swing.BorderFactory;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
-import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.Timer;
 import javax.swing.border.Border;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
 
 import net.sourceforge.aprog.af.AFConstants;
 import net.sourceforge.aprog.af.AFMainFrame;
@@ -57,7 +57,6 @@ import net.sourceforge.aprog.events.Variable;
 import net.sourceforge.aprog.events.Variable.ValueChangedEvent;
 import net.sourceforge.aprog.swing.SwingTools;
 import net.sourceforge.aprog.tools.IllegalInstantiationException;
-import net.sourceforge.aprog.tools.Tools;
 
 /**
  * @author codistmonk (creation 2013-01-14)
@@ -88,6 +87,8 @@ public final class TabularDataPlotter {
 	 */
 	public static final String APPLICATION_ICON_PATH = "glj/demo/tabular_data_plotter_icon.png";
 	
+	static final List<Timer> timers = synchronizedList(new LinkedList<Timer>());
+	
 	static {
 		GLProfile.initSingleton();
 	}
@@ -109,6 +110,10 @@ public final class TabularDataPlotter {
 				mainFrame.dispose();
 				
 				GLProfile.shutdown(ShutdownType.COMPLETE);
+				
+				while (!timers.isEmpty()) {
+					timers.remove(0).stop();
+				}
 			}
 			
 		};
@@ -121,33 +126,27 @@ public final class TabularDataPlotter {
 						null,
 						newQuitItem(result))));
 		
+		result.set("DATA", null, TabularDoubleData.class);
+		
 		return result;
 	}
 	
 	public static final void open(final Context context, final File file) {
 		try {
 			final Scanner scanner = new Scanner(file);
-			final DefaultTableModel dataModel = new DefaultTableModel();
-			int columnCount = 0;
 			
 			scanner.useLocale(Locale.ENGLISH);
 			
+			final TabularDoubleData data = new TabularDoubleData();
+			
 			while (scanner.hasNext()) {
-				final Object[] row = toObjects(toDoubles(scanner.nextLine().split("\\p{Blank}+")));
-				
-				if (columnCount == 0) {
-					columnCount = row.length;
-					
-					for (int i = 1; i <= columnCount; ++i) {
-						dataModel.addColumn("$" + i);
-					}
-				}
-				
-				dataModel.addRow(row);
+				data.addDataRow(toDoubles(scanner.nextLine().split("\\p{Blank}+")));
 			}
 			
+			debugPrint(data.getRowCount(), data.getColumnCount());
+			
+			context.set("DATA", data);
 			context.set("FILE", file);
-			context.set("DATA_MODEL", dataModel);
 		} catch (final FileNotFoundException exception) {
 			exception.printStackTrace();
 		}
@@ -183,7 +182,6 @@ public final class TabularDataPlotter {
 		MacOSXTools.setupUI(APPLICATION_NAME, APPLICATION_ICON_PATH);
 		useSystemLookAndFeel();
 		setMessagesBase(getThisPackagePath() + "i18n/Messages");
-		
 		
 		invokeLater(new Runnable() {
 			
@@ -236,12 +234,11 @@ public final class TabularDataPlotter {
 					new JLabel("Color:"), new JTextField()), BorderLayout.NORTH);
 			glPanel.add(glCanvas, BorderLayout.CENTER);
 			
-			final JTable dataTable = new JTable();
-			
-			this.add(verticalSplit(
-					scrollable(dataTable),
+			final JSplitPane dataAndGL = verticalSplit(
+					new JLabel("NO DATA"),
 					glPanel
-			), BorderLayout.CENTER);
+			);
+			this.add(dataAndGL, BorderLayout.CENTER);
 			
 			this.setDropTarget(new HighlightBorderDropTarget() {
 				
@@ -256,19 +253,106 @@ public final class TabularDataPlotter {
 				
 			});
 			
-			context.set("DATA_MODEL", dataTable.getModel(), TableModel.class);
-			final Variable<TableModel> dataModelVariable = context.getVariable("DATA_MODEL");
-			dataModelVariable.addListener(new Variable.Listener<TableModel>() {
+			final Variable<TabularDoubleData> dataModelVariable = context.getVariable("DATA");
+			
+			dataModelVariable.addListener(new Variable.Listener<TabularDoubleData>() {
 				
 				@Override
-				public final void valueChanged(final ValueChangedEvent<TableModel, ?> event) {
-					final DefaultTableModel dataModel = (DefaultTableModel) event.getNewValue();
-					debugPrint("rowCount:", dataModel.getRowCount(), "columnCount:", dataModel.getColumnCount());
-					dataTable.setModel(dataModel);
-					dataModel.fireTableDataChanged();
+				public final void valueChanged(final ValueChangedEvent<TabularDoubleData, ?> event) {
+					final TabularDoubleData model = event.getNewValue();
+					dataAndGL.setLeftComponent(new DataConfigurator(context, model));
 				}
 				
 			});
+		}
+		
+		/**
+		 * @author codistmonk (creation 2013-01-21)
+		 */
+		public static final class DataConfigurator extends JPanel {
+			
+			private final Context context;
+			
+			private final TabularDoubleData model;
+			
+			private final Timer timer;
+			
+			private boolean modelOutOfDate;
+			
+			public DataConfigurator(final Context context, final TabularDoubleData model) {
+				super(new GridLayout(4, 1 + model.getColumnCount()));
+				this.context = context;
+				this.model = model;
+				
+				this.add(new JLabel("Name"));
+				
+				for (final Column column : model.getColumns()) {
+					this.add(new JTextField(column.getName()));
+				}
+				
+				this.add(new JLabel("Rounding"));
+				
+				for (final Column column : model.getColumns()) {
+					this.add(new JTextField("" + column.getRounding()));
+				}
+				
+				this.add(new JLabel("Grouping"));
+				
+				for (final Column column : model.getColumns()) {
+					this.add(new JCheckBox());
+				}
+				
+				this.add(new JLabel("Sorting"));
+				
+				for (final Column column : model.getColumns()) {
+					this.add(new JTextField());
+				}
+				
+				this.timer = new Timer(500, new ActionListener() {
+					
+					@Override
+					public final void actionPerformed(final ActionEvent event) {
+						DataConfigurator.this.maybeUpdateModel();
+					}
+					
+				});
+				
+				this.timer.setRepeats(true);
+				this.timer.setCoalesce(true);
+				this.timer.start();
+				
+				timers.add(this.timer);
+			}
+			
+			public final synchronized void maybeUpdateModel() {
+				if (this.isModelOutOfDate()) {
+					this.setModelOutOfDate(false);
+					this.model.updateView();
+					
+					final GLCanvas glCanvas = this.context.get("GL_CANVAS");
+					
+					glCanvas.repaint();
+				}
+			}
+			
+			public final synchronized boolean isModelOutOfDate() {
+				return this.modelOutOfDate;
+			}
+			
+			public final synchronized void setModelOutOfDate(final boolean modelOutOfDate) {
+				this.modelOutOfDate = modelOutOfDate;
+			}
+			
+			@Override
+			protected final void finalize() throws Throwable {
+				try {
+					this.timer.stop();
+					timers.remove(this.timer);
+				} finally {
+					super.finalize();
+				}
+			}
+			
 		}
 		
 	}
