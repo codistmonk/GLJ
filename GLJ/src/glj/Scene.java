@@ -517,13 +517,11 @@ public abstract class Scene implements GLEventListener {
 		
 		public final VBO bind() {
 			Scene.this.getGL().glBindBuffer(this.getBufferType(), this.getId()); Scene.this.debugGL();
-			
 			return this;
 		}
 		
 		public final VBO unbind() {
 			Scene.this.getGL().glBindBuffer(this.getBufferType(), 0); Scene.this.debugGL();
-			
 			return this;
 		}
 		
@@ -533,6 +531,16 @@ public abstract class Scene implements GLEventListener {
 		
 		public final VBO update(final int offset, final int... data) {
 			return this.update(offset, data.length, INT_BYTE_COUNT, IntBuffer.wrap(data));
+		}
+		
+		@Override
+		protected final void finalize() throws Throwable {
+			try {
+				// XXX Crash!
+//				Scene.this.getGL().glDeleteBuffers(1, this.id, 0); Scene.this.debugGL();
+			} finally {
+				super.finalize();
+			}
 		}
 		
 		private final VBO update(final int offset, final int dataLength, final int datumByteCount, final Buffer data) {

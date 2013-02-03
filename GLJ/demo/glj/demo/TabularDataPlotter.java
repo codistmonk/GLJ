@@ -15,7 +15,10 @@ import static net.sourceforge.aprog.swing.SwingTools.I18N.menu;
 import static net.sourceforge.aprog.tools.Tools.debugPrint;
 import static net.sourceforge.aprog.tools.Tools.getThisPackagePath;
 import glj.demo.Demo.MouseHandler;
+import glj.demo.StandardScene.PrimitiveRenderer;
+import glj.demo.StandardScene.Renderer;
 import glj.demo.TabularDoubleData.Column;
+import glj.demo.TabularDoubleData.ViewRow;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -29,13 +32,17 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Scanner;
 
+import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
+import javax.media.opengl.GLRunnable;
 import javax.media.opengl.GLProfile.ShutdownType;
 import javax.media.opengl.awt.GLCanvas;
 import javax.swing.BorderFactory;
@@ -58,6 +65,7 @@ import net.sourceforge.aprog.events.Variable;
 import net.sourceforge.aprog.events.Variable.ValueChangedEvent;
 import net.sourceforge.aprog.swing.SwingTools;
 import net.sourceforge.aprog.tools.IllegalInstantiationException;
+import net.sourceforge.aprog.tools.Tools;
 
 /**
  * @author codistmonk (creation 2013-01-14)
@@ -266,6 +274,42 @@ public final class TabularDataPlotter {
 				public final void valueChanged(final ValueChangedEvent<TabularDoubleData, ?> event) {
 					final TabularDoubleData model = event.getNewValue();
 					dataAndGL.setLeftComponent(new DataConfigurator(context, model));
+					
+					final Map<String, Renderer> renderers = context.get("RENDERERS");
+					final PrimitiveRenderer dataPoints = (PrimitiveRenderer) renderers.get("dataPoints");
+					
+					model.updateView();
+					
+					final Collection<ViewRow> viewRows = model.getViewRows();
+					final int rowCount = viewRows.size();
+					final float[] vertices = new float[3 * rowCount];
+					final float[] colors = new float[4 * rowCount];
+					int vertexIndex = 0;
+					
+					for (final ViewRow row : viewRows) {
+						vertices[3 * vertexIndex + 0] = (float) row.getDataRow()[0];
+						vertices[3 * vertexIndex + 1] = (float) row.getDataRow()[1];
+						vertices[3 * vertexIndex + 2] = (float) row.getDataRow()[2];
+						colors[4 * vertexIndex + 0] = (float) row.getDataRow()[0];
+						colors[4 * vertexIndex + 1] = (float) row.getDataRow()[1];
+						colors[4 * vertexIndex + 2] = (float) row.getDataRow()[2];
+						colors[4 * vertexIndex + 3] = +1.0F;
+						++vertexIndex;
+					}
+					
+					final GLCanvas glCanvas = context.get("GL_CANVAS");
+					
+					glCanvas.invoke(false, new GLRunnable() {
+						
+						@Override
+						public final boolean run(final GLAutoDrawable drawable) {
+							dataPoints.getLocations().update(0, vertices);
+							dataPoints.getColors().update(0, colors);
+							
+							return false;
+						}
+						
+					});
 				}
 				
 			});

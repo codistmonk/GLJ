@@ -1,13 +1,19 @@
 package glj.demo;
 
-import static glj.Scene.Shader.*;
+import static glj.Scene.Shader.ATTRIBUTE;
+import static glj.Scene.Shader.DECLARE_FRAGMENT_OUTPUT_COLOR;
+import static glj.Scene.Shader.FRAGMENT_OUTPUT_COLOR;
+import static glj.Scene.Shader.IN;
+import static glj.Scene.Shader.OUT;
+import static glj.Scene.Shader.VERSION;
 import static javax.media.opengl.GL.GL_FLOAT;
+import static javax.media.opengl.GL.GL_LINES;
+import static javax.media.opengl.GL.GL_POINTS;
 import static net.sourceforge.aprog.tools.Tools.debugPrint;
-
 import glj.Scene;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
@@ -24,11 +30,13 @@ public final class StandardScene extends Scene {
 	
 	private final Context context;
 	
-	private final Collection<Renderer> renderers;
+	private final Map<String, Renderer> renderers;
 	
 	public StandardScene(final Context context) {
 		this.context = context;
-		this.renderers = new ArrayList<Renderer>();
+		this.renderers = new LinkedHashMap<String, Renderer>();
+		
+		context.set("RENDERERS", this.renderers);
 	}
 	
 	@Override
@@ -83,6 +91,8 @@ public final class StandardScene extends Scene {
 		.link()
 		;
 		
+		this.context.set("SHADER_PROGRAM", shaderProgram);
+		
 		final Matrix4f position = new Matrix4f();
 		
 		position.setIdentity();
@@ -90,6 +100,7 @@ public final class StandardScene extends Scene {
 		final float negative = -128.0F;
 		final float positive = +127.0F;
 		final float size = positive - negative;
+		int segmentIndex = 0;
 		
 		for (final float[] ij : new float[][] { { negative, negative }, { negative, positive }, { positive, positive }, { positive, negative } }) {
 			final float i = ij[0];
@@ -97,7 +108,8 @@ public final class StandardScene extends Scene {
 			final float ci = (i - negative) / size;
 			final float cj = (j - negative) / size;
 			
-			this.renderers.add(new Segment(
+			this.renderers.put("boxSegment" + (segmentIndex++), this.new PrimitiveRenderer(
+					GL_LINES,
 					shaderProgram,
 					this.new VBO(GL_FLOAT, 3).update(0,
 							negative, i, j,
@@ -110,7 +122,8 @@ public final class StandardScene extends Scene {
 					position
 			));
 			
-			this.renderers.add(new Segment(
+			this.renderers.put("boxSegment" + (segmentIndex++), this.new PrimitiveRenderer(
+					GL_LINES,
 					shaderProgram,
 					this.new VBO(GL_FLOAT, 3).update(0,
 							j, negative, i,
@@ -123,7 +136,8 @@ public final class StandardScene extends Scene {
 					position
 			));
 			
-			this.renderers.add(new Segment(
+			this.renderers.put("boxSegment" + (segmentIndex++), this.new PrimitiveRenderer(
+					GL_LINES,
 					shaderProgram,
 					this.new VBO(GL_FLOAT, 3).update(0,
 							i, j, negative,
@@ -136,15 +150,81 @@ public final class StandardScene extends Scene {
 					position
 			));
 		}
+		
+		this.renderers.put("dataPoints", this.new PrimitiveRenderer(
+				GL_POINTS,
+				shaderProgram,
+				this.new VBO(GL_FLOAT, 3).update(0, +0.0F, +0.0F, +0.0F),
+				this.new VBO(GL_FLOAT, 4).update(0, +1.0F, +1.0F, +1.0F, +1.0F),
+				position
+		));
 	}
 	
 	@Override
 	protected final void display() {
 		super.display();
 		
-		for (final Renderer renderer : this.renderers) {
+		for (final Renderer renderer : this.renderers.values()) {
 			renderer.render();
 		}
+	}
+	
+	/**
+	 * @author codistmonk (creation 2012-01-12)
+	 */
+	public final class PrimitiveRenderer implements Renderer {
+		
+		private final ShaderProgram shaderProgram;
+		
+		private final VBO locations;
+		
+		private final VBO colors;
+		
+		private final Matrix4f position;
+		
+		private final int primitiveType;
+		
+		public PrimitiveRenderer(final int primitiveType, final ShaderProgram shaderProgram, final VBO locations,
+				final VBO colors, final Matrix4f position) {
+			this.primitiveType = primitiveType;
+			this.shaderProgram = shaderProgram;
+			this.locations = locations;
+			this.colors = colors;
+			this.position = position;
+		}
+		
+		public final ShaderProgram getShaderProgram() {
+			return this.shaderProgram;
+		}
+		
+		public final VBO getLocations() {
+			return this.locations;
+		}
+		
+		public final VBO getColors() {
+			return this.colors;
+		}
+		
+		public final Matrix4f getPosition() {
+			return this.position;
+		}
+		
+		public final int getPrimitiveType() {
+			return this.primitiveType;
+		}
+		
+		@Override
+		public final void render() {
+			this.getShaderProgram().setUniform("projection", StandardScene.this.getDefaultCamera().getProjection());
+			this.getShaderProgram().setUniform("view", StandardScene.this.getDefaultCamera().getPosition());
+			this.getShaderProgram().setUniform("model", this.getPosition());
+			this.getShaderProgram().bindAttribute("vertexLocation", this.getLocations());
+			this.getShaderProgram().bindAttribute("vertexColor", this.getColors());
+			this.getShaderProgram().use();
+			StandardScene.this.getGL().glDrawArrays(this.getPrimitiveType(), 0, this.getLocations().getComponentCount()); StandardScene.this.debugGL();
+			this.getShaderProgram().unuse();
+		}
+		
 	}
 	
 	/**
@@ -153,76 +233,6 @@ public final class StandardScene extends Scene {
 	public static abstract interface Renderer {
 		
 		public abstract void render();
-		
-	}
-	
-	/**
-	 * @author codistmonk (creation 2012-01-12)
-	 */
-	public final class Points implements Renderer {
-		
-		private final ShaderProgram shaderProgram;
-		
-		private final VBO locations;
-		
-		private final VBO colors;
-		
-		private final Matrix4f position;
-		
-		public Points(final ShaderProgram shaderProgram, final VBO locations,
-				final VBO colors, final Matrix4f position) {
-			this.shaderProgram = shaderProgram;
-			this.locations = locations;
-			this.colors = colors;
-			this.position = position;
-		}
-		
-		@Override
-		public final void render() {
-			this.shaderProgram.setUniform("projection", StandardScene.this.getDefaultCamera().getProjection());
-			this.shaderProgram.setUniform("view", StandardScene.this.getDefaultCamera().getPosition());
-			this.shaderProgram.setUniform("model", this.position);
-			this.shaderProgram.bindAttribute("vertexLocation", this.locations);
-			this.shaderProgram.bindAttribute("vertexColor", this.colors);
-			this.shaderProgram.use();
-			StandardScene.this.getGL().glDrawArrays(GL.GL_POINTS, 0, this.locations.getComponentCount()); StandardScene.this.debugGL();
-			this.shaderProgram.unuse();
-		}
-		
-	}
-	
-	/**
-	 * @author codistmonk (creation 2012-01-12)
-	 */
-	public final class Segment implements Renderer {
-		
-		private final ShaderProgram shaderProgram;
-		
-		private final VBO locations;
-		
-		private final VBO colors;
-		
-		private final Matrix4f position;
-		
-		public Segment(final ShaderProgram shaderProgram, final VBO locations,
-				final VBO colors, final Matrix4f position) {
-			this.shaderProgram = shaderProgram;
-			this.locations = locations;
-			this.colors = colors;
-			this.position = position;
-		}
-		
-		@Override
-		public final void render() {
-			this.shaderProgram.setUniform("projection", StandardScene.this.getDefaultCamera().getProjection());
-			this.shaderProgram.setUniform("view", StandardScene.this.getDefaultCamera().getPosition());
-			this.shaderProgram.setUniform("model", this.position);
-			this.shaderProgram.bindAttribute("vertexColor", this.colors);
-			this.shaderProgram.bindAttribute("vertexLocation", this.locations);
-			this.shaderProgram.use();
-			StandardScene.this.getGL().glDrawArrays(GL.GL_LINES, 0, this.locations.getComponentCount()); StandardScene.this.debugGL();
-			this.shaderProgram.unuse();
-		}
 		
 	}
 	

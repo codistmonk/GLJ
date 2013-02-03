@@ -3,6 +3,7 @@ package glj.demo;
 import static net.sourceforge.aprog.tools.Tools.cast;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -77,8 +78,20 @@ public final class TabularDoubleData {
 		return this.sortingKeys;
 	}
 	
+	/**
+	 * @return An instance of {@link List}&lt;{@link ViewRow}&gt; if grouping is disabled,
+	 * otherwise a {@link Map}&lt;{@link ViewRow},{@link ViewRow}&gt; to guarantee unicity and help counting 
+	 */
 	public final <V> V getView() {
 		return (V) this.view;
+	}
+	
+	public final Collection<ViewRow> getViewRows() {
+		if (this.getGrouping().isEmpty()) {
+			return this.getView();
+		}
+		
+		return ((Map<ViewRow, ViewRow>) this.getView()).keySet();
 	}
 	
 	public final void updateView() {
