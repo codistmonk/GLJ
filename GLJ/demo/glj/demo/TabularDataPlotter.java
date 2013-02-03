@@ -14,6 +14,7 @@ import static net.sourceforge.aprog.swing.SwingTools.verticalSplit;
 import static net.sourceforge.aprog.swing.SwingTools.I18N.menu;
 import static net.sourceforge.aprog.tools.Tools.debugPrint;
 import static net.sourceforge.aprog.tools.Tools.getThisPackagePath;
+import glj.demo.Demo.MouseHandler;
 import glj.demo.TabularDoubleData.Column;
 
 import java.awt.BorderLayout;
@@ -204,10 +205,14 @@ public final class TabularDataPlotter {
 		final GLProfile glProfile = GLProfile.get(GLProfile.GL2GL3);
 		final GLCapabilities glCapabilities = new GLCapabilities(glProfile);
 		final GLCanvas glCanvas = new GLCanvas(glCapabilities);
+		final StandardScene scene = new StandardScene(context);
 		
 		context.set("GL_CANVAS", glCanvas);
+		context.set("SCENE", scene);
 		
-		glCanvas.addGLEventListener(new Scene(context));
+		glCanvas.addGLEventListener(scene);
+		
+		new MouseHandler(scene).addTo(glCanvas);
 		
 		return glCanvas;
 	}
@@ -357,32 +362,32 @@ public final class TabularDataPlotter {
 		
 	}
 	
-	/**
-	 * @author codistmonk (creation 2013-01-14)
-	 */
-	public static final class Scene extends glj.Scene {
-		
-		private final Context context;
-		
-		public Scene(final Context context) {
-			this.context = context;
-		}
-		
-		@Override
-		protected final void initialize() {
-			super.initialize();
-			
-			debugPrint("TODO");
-		}
-		
-		@Override
-		protected final void display() {
-			super.display();
-			
-			debugPrint("TODO");
-		}
-		
-	}
+//	/**
+//	 * @author codistmonk (creation 2013-01-14)
+//	 */
+//	public static final class Scene extends glj.Scene {
+//		
+//		private final Context context;
+//		
+//		public Scene(final Context context) {
+//			this.context = context;
+//		}
+//		
+//		@Override
+//		protected final void initialize() {
+//			super.initialize();
+//			
+//			debugPrint("TODO");
+//		}
+//		
+//		@Override
+//		protected final void display() {
+//			super.display();
+//			
+//			debugPrint("TODO");
+//		}
+//		
+//	}
 	
 	/**
 	 * @author codistmonk (creation 2013-01-14)

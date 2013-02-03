@@ -305,7 +305,14 @@ public abstract class Scene implements GLEventListener {
 		}
 		
 		public final Shader appendLine(final String line) {
-			this.sourceBuilder.append(line).append('\n');
+			this.sourceBuilder.append(line
+					.replaceAll("\\" + VERSION, "" + Scene.this.getGLSL().getVersion())
+					.replaceAll("\\" + ATTRIBUTE, Scene.this.getGLSL().getAttribute())
+					.replaceAll("\\" + IN, "" + Scene.this.getGLSL().getVaryingIn())
+					.replaceAll("\\" + OUT, "" + Scene.this.getGLSL().getVaryingOut())
+					.replaceAll("\\" + DECLARE_FRAGMENT_OUTPUT_COLOR, "" + Scene.this.getGLSL().getDeclareFragmentOutputColor())
+					.replaceAll("\\" + FRAGMENT_OUTPUT_COLOR, "" + Scene.this.getGLSL().getFragmentOutputColor())
+				).append('\n');
 			
 			return this;
 		}
@@ -327,6 +334,36 @@ public abstract class Scene implements GLEventListener {
 				}
 			}
 		}
+		
+		/**
+		 * {@value}.
+		 */
+		public static final String FRAGMENT_OUTPUT_COLOR = "$FRAGMENT_OUTPUT_COLOR";
+		
+		/**
+		 * {@value}.
+		 */
+		public static final String DECLARE_FRAGMENT_OUTPUT_COLOR = "$DECLARE_FRAGMENT_OUTPUT_COLOR";
+		
+		/**
+		 * {@value}.
+		 */
+		public static final String OUT = "$OUT";
+		
+		/**
+		 * {@value}.
+		 */
+		public static final String IN = "$IN";
+		
+		/**
+		 * {@value}.
+		 */
+		public static final String ATTRIBUTE = "$ATTRIBUTE";
+		
+		/**
+		 * {@value}.
+		 */
+		public static final String VERSION = "$VERSION";
 		
 	}
 	
