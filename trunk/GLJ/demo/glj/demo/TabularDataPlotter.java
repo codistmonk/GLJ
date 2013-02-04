@@ -12,11 +12,13 @@ import static net.sourceforge.aprog.swing.SwingTools.packAndCenter;
 import static net.sourceforge.aprog.swing.SwingTools.useSystemLookAndFeel;
 import static net.sourceforge.aprog.swing.SwingTools.verticalSplit;
 import static net.sourceforge.aprog.swing.SwingTools.I18N.menu;
+import static net.sourceforge.aprog.tools.Tools.cast;
 import static net.sourceforge.aprog.tools.Tools.debugPrint;
 import static net.sourceforge.aprog.tools.Tools.getThisPackagePath;
 import glj.demo.Demo.MouseHandler;
 import glj.demo.StandardScene.PrimitiveRenderer;
 import glj.demo.StandardScene.Renderer;
+import glj.demo.TabularDataPlotter.MainPanel.ValueGetter.ColorGetter;
 import glj.demo.TabularDoubleData.Column;
 import glj.demo.TabularDoubleData.ViewRow;
 
@@ -32,6 +34,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -243,8 +246,13 @@ public final class TabularDataPlotter {
 			
 			final JPanel glPanel = new JPanel(new BorderLayout());
 			
-			glPanel.add(horizontalBox(new JLabel("X:"), new JTextField(), new JLabel("Y:"), new JTextField(), new JLabel("Z:"), new JTextField(),
-					new JLabel("Color:"), new JTextField()), BorderLayout.NORTH);
+			final JTextField xyzTextField = new JTextField("$0 $1 $2");
+			final JTextField colorTextField = new JTextField("rgb $0 $1 $2");
+			
+			context.set("XYZ_TEXT_FIELD", xyzTextField);
+			context.set("COLOR_TEXT_FIELD", colorTextField);
+			
+			glPanel.add(horizontalBox(new JLabel("XYZ:"), xyzTextField, new JLabel("Color:"), colorTextField), BorderLayout.NORTH);
 			glPanel.add(glCanvas, BorderLayout.CENTER);
 			
 			final JSplitPane dataAndGL = verticalSplit(
@@ -273,46 +281,138 @@ public final class TabularDataPlotter {
 				@Override
 				public final void valueChanged(final ValueChangedEvent<TabularDoubleData, ?> event) {
 					final TabularDoubleData model = event.getNewValue();
-					dataAndGL.setLeftComponent(new DataConfigurator(context, model));
+					final DataConfigurator oldDataConfigurator = cast(DataConfigurator.class, dataAndGL.getLeftComponent());
 					
-					final Map<String, Renderer> renderers = context.get("RENDERERS");
-					final PrimitiveRenderer dataPoints = (PrimitiveRenderer) renderers.get("dataPoints");
-					
-					model.updateView();
-					
-					final Collection<ViewRow> viewRows = model.getViewRows();
-					final int rowCount = viewRows.size();
-					final float[] vertices = new float[3 * rowCount];
-					final float[] colors = new float[4 * rowCount];
-					int vertexIndex = 0;
-					
-					for (final ViewRow row : viewRows) {
-						vertices[3 * vertexIndex + 0] = (float) row.getDataRow()[0];
-						vertices[3 * vertexIndex + 1] = (float) row.getDataRow()[1];
-						vertices[3 * vertexIndex + 2] = (float) row.getDataRow()[2];
-						colors[4 * vertexIndex + 0] = (float) row.getDataRow()[0];
-						colors[4 * vertexIndex + 1] = (float) row.getDataRow()[1];
-						colors[4 * vertexIndex + 2] = (float) row.getDataRow()[2];
-						colors[4 * vertexIndex + 3] = +1.0F;
-						++vertexIndex;
+					if (oldDataConfigurator != null) {
+						oldDataConfigurator.stopTimer();
 					}
 					
-					final GLCanvas glCanvas = context.get("GL_CANVAS");
+					final DataConfigurator dataConfigurator = new DataConfigurator(context, model);
 					
-					glCanvas.invoke(false, new GLRunnable() {
-						
-						@Override
-						public final boolean run(final GLAutoDrawable drawable) {
-							dataPoints.getLocations().update(0, vertices);
-							dataPoints.getColors().update(0, colors);
-							
-							return false;
-						}
-						
-					});
+					dataAndGL.setLeftComponent(dataConfigurator);
+					
+					dataConfigurator.setModelOutOfDate(true);
 				}
 				
 			});
+		}
+		
+		/**
+		 * @author codistmonk (creation 2013-02-04)
+		 *
+		 * @param <T>
+		 */
+		public static interface ValueGetter<T> {
+			
+			public abstract double get(T object);
+			
+			/**
+			 * @author codistmonk (creation 2013-03-04)
+			 */
+			public static final class Constant<T> implements ValueGetter<T> {
+				
+				private final double value;
+				
+				public Constant(final double value) {
+					this.value = value;
+				}
+				
+				@Override
+				public final double get(final T object) {
+					return this.value;
+				}
+				
+			}
+			
+			/**
+			 * @author codistmonk (creation 2013-03-04)
+			 *
+			 * @param <T>
+			 */
+			public static interface ColorGetter<T> {
+				
+				public abstract Color get(T object);
+				
+				/**
+				 * @author codistmonk (creation 2013-03-04)
+				 *
+				 * @param <T>
+				 */
+				public static final class RGBAColorGetter<T> implements ColorGetter<T> {
+					
+					private final ValueGetter<T> redGetter;
+					
+					private final ValueGetter<T> greenGetter;
+					
+					private final ValueGetter<T> blueGetter;
+					
+					private final ValueGetter<T> alphaGetter;
+					
+					public RGBAColorGetter(final ValueGetter<T> redGetter,
+							final ValueGetter<T> greenGetter,
+							final ValueGetter<T> blueGetter,
+							final ValueGetter<T> alphaGetter) {
+						this.redGetter = redGetter;
+						this.greenGetter = greenGetter;
+						this.blueGetter = blueGetter;
+						this.alphaGetter = alphaGetter;
+					}
+					
+					@Override
+					public final Color get(final T object) {
+						return new Color(
+								(int) this.redGetter.get(object),
+								(int) this.greenGetter.get(object),
+								(int) this.blueGetter.get(object),
+								(int) this.alphaGetter.get(object));
+					}
+					
+				}
+				
+			}
+			
+			/**
+			 * @author codistmonk (creation 2013-03-04)
+			 */
+			public static final class ArrayElement implements ValueGetter<double[]> {
+				
+				private final int index;
+				
+				public ArrayElement(final int index) {
+					this.index = index;
+				}
+				
+				@Override
+				public final double get(final double[] array) {
+					return array[this.index];
+				}
+				
+			}
+			
+		}
+		
+		public static final double normalize(final double value, final double minimum, final double maximum) {
+			if (value <= minimum) {
+				return 0.0;
+			}
+			
+			if (maximum <= value) {
+				return 1.0;
+			}
+			
+			return (value - minimum) / (maximum - minimum);
+		}
+		
+		public static final double denormalize(final double value, final double minimum, final double maximum) {
+			if (value <= 0.0) {
+				return minimum;
+			}
+			
+			if (1.0 <= value) {
+				return maximum;
+			}
+			
+			return minimum + value * (maximum - minimum);
 		}
 		
 		/**
@@ -328,33 +428,64 @@ public final class TabularDataPlotter {
 			
 			private boolean modelOutOfDate;
 			
+			private final List<JTextField> names;
+			
+			private final List<JTextField> roundings;
+			
+			private final List<JCheckBox> groupings;
+			
+			private final List<JTextField> sortings;
+			
 			public DataConfigurator(final Context context, final TabularDoubleData model) {
-				super(new GridLayout(4, 1 + model.getColumnCount()));
+				super(new GridLayout(1, 1 + model.getColumnCount()));
 				this.context = context;
 				this.model = model;
+				
+				final int columnCount = model.getColumnCount();
+				
+				this.names = new ArrayList<JTextField>(columnCount);
+				this.roundings = new ArrayList<JTextField>(columnCount);
+				this.groupings = new ArrayList<JCheckBox>(columnCount);
+				this.sortings = new ArrayList<JTextField>(columnCount);
 				
 				this.add(new JLabel("Name"));
 				
 				for (final Column column : model.getColumns()) {
-					this.add(new JTextField(column.getName()));
+					final JTextField nameTextField = new JTextField(column.getName());
+					
+					this.names.add(nameTextField);
+					this.add(nameTextField);
 				}
 				
-				this.add(new JLabel("Rounding"));
+				final boolean showPlannedFeatures = false;
 				
-				for (final Column column : model.getColumns()) {
-					this.add(new JTextField("" + column.getRounding()));
-				}
-				
-				this.add(new JLabel("Grouping"));
-				
-				for (final Column column : model.getColumns()) {
-					this.add(new JCheckBox());
-				}
-				
-				this.add(new JLabel("Sorting"));
-				
-				for (final Column column : model.getColumns()) {
-					this.add(new JTextField());
+				if (showPlannedFeatures) {
+					this.add(new JLabel("Rounding"));
+					
+					for (final Column column : model.getColumns()) {
+						final JTextField roundingTextField = new JTextField("" + column.getRounding());
+						
+						this.roundings.add(roundingTextField);
+						this.add(roundingTextField);
+					}
+					
+					this.add(new JLabel("Grouping"));
+					
+					for (final Column column : model.getColumns()) {
+						final JCheckBox groupingCheckBox = new JCheckBox();
+						
+						this.groupings.add(groupingCheckBox);
+						this.add(groupingCheckBox);
+					}
+					
+					this.add(new JLabel("Sorting"));
+					
+					for (final Column column : model.getColumns()) {
+						final JTextField sortingTextField = new JTextField();
+						
+						this.sortings.add(sortingTextField);
+						this.add(sortingTextField);
+					}
 				}
 				
 				this.timer = new Timer(500, new ActionListener() {
@@ -373,15 +504,140 @@ public final class TabularDataPlotter {
 				timers.add(this.timer);
 			}
 			
+			public final List<JTextField> getNames() {
+				return this.names;
+			}
+			
+			public final List<JTextField> getRoundings() {
+				return this.roundings;
+			}
+			
+			public final List<JCheckBox> getGroupings() {
+				return this.groupings;
+			}
+			
+			public final List<JTextField> getSortings() {
+				return this.sortings;
+			}
+			
+			public final ValueGetter<double[]> getGetter(final String name) {
+				final int index = this.getIndex(name);
+				
+				if (0 <= index) {
+					return new ValueGetter.ArrayElement(index);
+				}
+				
+				try {
+					return new ValueGetter.Constant<double[]>(Double.parseDouble(name));
+				} catch (final Exception exception) {
+					debugPrint(exception);
+				}
+				
+				return new ValueGetter.Constant<double[]>(0.0);
+			}
+			
+			public final int getIndex(final String name) {
+				int index = 0;
+				
+				for (final JTextField nameTextField : this.getNames()) {
+					if (nameTextField.getText().equals(name)) {
+						return index;
+					}
+					
+					++index;
+				}
+				
+				return -1;
+			}
+			
 			public final synchronized void maybeUpdateModel() {
 				if (this.isModelOutOfDate()) {
 					this.setModelOutOfDate(false);
-					this.model.updateView();
+					this.updateModelAndView();
 					
 					final GLCanvas glCanvas = this.context.get("GL_CANVAS");
 					
 					glCanvas.repaint();
 				}
+			}
+			
+			private final void updateModelAndView() {
+				debugPrint();
+				final Map<String, Renderer> renderers = this.context.get("RENDERERS");
+				final PrimitiveRenderer dataPoints = (PrimitiveRenderer) renderers.get("dataPoints");
+				final JTextField xyzTextField = this.context.get("XYZ_TEXT_FIELD");
+				final JTextField colorTextField = this.context.get("COLOR_TEXT_FIELD");
+				
+				this.model.updateView();
+				
+				final String[] xyzNames = xyzTextField.getText().split("\\s+");
+				final ValueGetter<double[]> xGetter = this.getGetter(xyzNames[0]);
+				final ValueGetter<double[]> yGetter = this.getGetter(xyzNames[1]);
+				final ValueGetter<double[]> zGetter = this.getGetter(xyzNames[2]);
+				final String[] colorFunctionAndNames = colorTextField.getText().split("\\s+");
+				final int channelCount = colorFunctionAndNames.length - 1;
+				final ColorGetter<double[]> colorGetter;
+				
+				if (channelCount == 1) {
+					throw new RuntimeException("TODO");
+				} else if (channelCount == 3) {
+					if ("rgb".equals(colorFunctionAndNames[0].toLowerCase(Locale.ENGLISH))) {
+						colorGetter = new ColorGetter.RGBAColorGetter<double[]>(
+								this.getGetter(colorFunctionAndNames[1]),
+								this.getGetter(colorFunctionAndNames[2]),
+								this.getGetter(colorFunctionAndNames[3]),
+								new ValueGetter.Constant<double[]>(1.0));
+					} else {
+						throw new IllegalArgumentException("Invalid color function: " + colorFunctionAndNames[0]);
+					}
+				} else if (channelCount == 4) {
+					if ("rgba".equals(colorFunctionAndNames[0].toLowerCase(Locale.ENGLISH))) {
+						colorGetter = new ColorGetter.RGBAColorGetter<double[]>(
+								this.getGetter(colorFunctionAndNames[1]),
+								this.getGetter(colorFunctionAndNames[2]),
+								this.getGetter(colorFunctionAndNames[3]),
+								this.getGetter(colorFunctionAndNames[4]));
+					} else {
+						throw new IllegalArgumentException("Invalid color function: " + colorFunctionAndNames[0]);
+					}
+				} else {
+					throw new IllegalArgumentException("Invalid channel count: " + channelCount);
+				}
+				
+				final Collection<ViewRow> viewRows = this.model.getViewRows();
+				final int rowCount = viewRows.size();
+				final float[] vertices = new float[3 * rowCount];
+				final float[] colors = new float[4 * rowCount];
+				int vertexIndex = 0;
+				final float[] rgba = new float[4];
+				
+				for (final ViewRow row : viewRows) {
+					vertices[3 * vertexIndex + 0] = (float) denormalize(normalize(xGetter.get(row.getDataRow()), 0.0, 255.0), -128.0, +127.0);
+					vertices[3 * vertexIndex + 1] = (float) denormalize(normalize(yGetter.get(row.getDataRow()), 0.0, 255.0), -128.0, +127.0);
+					vertices[3 * vertexIndex + 2] = (float) denormalize(normalize(zGetter.get(row.getDataRow()), 0.0, 255.0), -128.0, +127.0);
+					
+					colorGetter.get(row.getDataRow()).getColorComponents(rgba);
+					
+					colors[4 * vertexIndex + 0] = rgba[0];
+					colors[4 * vertexIndex + 1] = rgba[1];
+					colors[4 * vertexIndex + 2] = rgba[2];
+					colors[4 * vertexIndex + 3] = rgba[3];
+					++vertexIndex;
+				}
+				
+				final GLCanvas glCanvas = this.context.get("GL_CANVAS");
+				
+				glCanvas.invoke(false, new GLRunnable() {
+					
+					@Override
+					public final boolean run(final GLAutoDrawable drawable) {
+						dataPoints.getLocations().update(0, vertices);
+						dataPoints.getColors().update(0, colors);
+						
+						return false;
+					}
+					
+				});
 			}
 			
 			public final synchronized boolean isModelOutOfDate() {
@@ -392,10 +648,14 @@ public final class TabularDataPlotter {
 				this.modelOutOfDate = modelOutOfDate;
 			}
 			
+			public final synchronized void stopTimer() {
+				this.timer.stop();
+			}
+			
 			@Override
 			protected final void finalize() throws Throwable {
 				try {
-					this.timer.stop();
+					this.stopTimer();
 					timers.remove(this.timer);
 				} finally {
 					super.finalize();
@@ -405,33 +665,6 @@ public final class TabularDataPlotter {
 		}
 		
 	}
-	
-//	/**
-//	 * @author codistmonk (creation 2013-01-14)
-//	 */
-//	public static final class Scene extends glj.Scene {
-//		
-//		private final Context context;
-//		
-//		public Scene(final Context context) {
-//			this.context = context;
-//		}
-//		
-//		@Override
-//		protected final void initialize() {
-//			super.initialize();
-//			
-//			debugPrint("TODO");
-//		}
-//		
-//		@Override
-//		protected final void display() {
-//			super.display();
-//			
-//			debugPrint("TODO");
-//		}
-//		
-//	}
 	
 	/**
 	 * @author codistmonk (creation 2013-01-14)
