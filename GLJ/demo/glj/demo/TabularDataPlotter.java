@@ -295,6 +295,22 @@ public final class TabularDataPlotter {
 				}
 				
 			});
+			
+			final ActionListener dataConfiguratorNotifier = new ActionListener() {
+				
+				@Override
+				public final void actionPerformed(final ActionEvent event) {
+					final DataConfigurator dataConfigurator = cast(DataConfigurator.class, dataAndGL.getLeftComponent());
+					
+					if (dataConfigurator != null) {
+						dataConfigurator.setModelOutOfDate(true);
+					}
+				}
+				
+			};
+			
+			xyzTextField.addActionListener(dataConfiguratorNotifier);
+			colorTextField.addActionListener(dataConfiguratorNotifier);
 		}
 		
 		/**
@@ -553,7 +569,12 @@ public final class TabularDataPlotter {
 			public final synchronized void maybeUpdateModel() {
 				if (this.isModelOutOfDate()) {
 					this.setModelOutOfDate(false);
-					this.updateModelAndView();
+					
+					try {
+						this.updateModelAndView();
+					} catch (final Exception exception) {
+						exception.printStackTrace();
+					}
 					
 					final GLCanvas glCanvas = this.context.get("GL_CANVAS");
 					
