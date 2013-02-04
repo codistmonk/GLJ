@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
+import net.sourceforge.aprog.tools.MathTools.Statistics;
+
 /**
  * @author codistmonk (creation 2013-01-21)
  */
@@ -31,6 +33,8 @@ public final class TabularDoubleData {
 	
 	private int columnCount = -1;
 	
+	private Statistics[] columnStatistics;
+	
 	public TabularDoubleData() {
 		this.data = new ArrayList<double[]>();
 		this.columns = new ArrayList<Column>();
@@ -43,13 +47,24 @@ public final class TabularDoubleData {
 		
 		if (this.columnCount < 0) {
 			this.columnCount = dataRow.length;
+			this.columnStatistics = new Statistics[this.columnCount];
 			
 			for (int i = 0; i < this.columnCount; ++i) {
 				this.new Column();
+				this.columnStatistics[i] = new Statistics();
 			}
+			
 		} else if (this.columnCount != dataRow.length) {
 			throw new IllegalArgumentException();
 		}
+		
+		for (int i = 0; i < this.columnCount; ++i) {
+			this.columnStatistics[i].addValue(dataRow[i]);
+		}
+	}
+	
+	public final Statistics[] getColumnStatistics() {
+		return this.columnStatistics;
 	}
 	
 	public final int getRowCount() {
