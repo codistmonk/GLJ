@@ -54,11 +54,6 @@ public final class Demo1 {
 				debugPrint("Renderer:", renderer);
 				debugPrint("Version:", version);
 				
-				{
-					gl.glEnable(GL.GL_DEPTH_TEST);
-					gl.glDepthFunc(GL.GL_LESS);
-				}
-				
 				this.add("tr 1", new Triangle(gl)
 						.addVertex(0F, 0F, +1F, 1F, 0F, 0F, 1F)
 						.addVertex(1F, 0F, +1F, 0F, 1F, 0F, 1F)

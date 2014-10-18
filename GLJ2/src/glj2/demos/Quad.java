@@ -1,5 +1,6 @@
 package glj2.demos;
 
+import glj2.core.GLJTools;
 import glj2.core.Geometry;
 import glj2.core.VAO;
 import glj2.core.VBO;
@@ -8,6 +9,7 @@ import java.nio.FloatBuffer;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL3;
+import javax.vecmath.Matrix4f;
 
 import com.jogamp.common.nio.Buffers;
 
@@ -15,6 +17,8 @@ import com.jogamp.common.nio.Buffers;
  * @author codistmonk (creation 2014-08-17)
  */
 public final class Quad implements Geometry {
+	
+	private final Matrix4f position;
 	
 	private final GL3 gl;
 	
@@ -27,12 +31,18 @@ public final class Quad implements Geometry {
 	private final VBO[] vbos;
 	
 	public Quad(final GL3 gl) {
+		this.position = GLJTools.newIdentity();
 		this.gl = gl;
 		final int vertexCount = 4;
 		this.locations = Buffers.newDirectFloatBuffer(vertexCount * 3);
 		this.colors = Buffers.newDirectFloatBuffer(vertexCount * 4);
 		this.vao = new VAO(gl);
 		this.vbos = new VBO[2];
+	}
+	
+	@Override
+	public final Matrix4f getPosition() {
+		return this.position;
 	}
 	
 	public final Quad addVertex(final float x, final float y, final float z,
