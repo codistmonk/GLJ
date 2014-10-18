@@ -1,11 +1,7 @@
 package glj2.core;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.media.opengl.DebugGL4;
@@ -28,8 +24,6 @@ public abstract class Scene implements GLEventListener, Serializable {
 	private final Map<String, ExtendedShaderProgram> shaderPrograms = new LinkedHashMap<>();
 	
 	private final Map<String, Geometry> geometries = new LinkedHashMap<>();
-	
-	private final Map<ExtendedShaderProgram, List<Geometry>> renderingPool = new LinkedHashMap<>();
 	
 	private GL gl;
 	
@@ -65,43 +59,6 @@ public abstract class Scene implements GLEventListener, Serializable {
 		return geometry;
 	}
 	
-	public final Map<ExtendedShaderProgram, List<Geometry>> getRenderingPool() {
-		return this.renderingPool;
-	}
-	
-//	public final Scene add(final ExtendedShaderProgram shaderProgram, final Geometry... geometries) {
-//		return this.add(shaderProgram, Arrays.asList(geometries));
-//	}
-//	
-//	public final Scene add(final ExtendedShaderProgram shaderProgram, final Collection<Geometry> geometries) {
-//		if (shaderProgram == null) {
-//			throw new NullPointerException();
-//		}
-//		
-//		this.getRenderingPool().compute(shaderProgram,
-//				(k, v) -> v != null ? v : new ArrayList<>()).addAll(geometries);
-//		
-//		return this;
-//	}
-	
-	public final Scene remove(final ExtendedShaderProgram shaderProgram, final Geometry... geometries) {
-		return this.remove(shaderProgram, Arrays.asList(geometries));
-	}
-	
-	public final Scene remove(final ExtendedShaderProgram shaderProgram, final Collection<Geometry> geometries) {
-		if (shaderProgram == null) {
-			throw new NullPointerException();
-		}
-		
-		final List<Geometry> list = this.getRenderingPool().get(shaderProgram);
-		
-		if (list != null) {
-			list.removeAll(Arrays.asList(geometries));
-		}
-		
-		return this;
-	}
-	
 	@SuppressWarnings("unchecked")
 	public final <T extends GL> T getGL() {
 		return (T) this.gl;
@@ -113,6 +70,11 @@ public abstract class Scene implements GLEventListener, Serializable {
 		
 		this.gl = drawable.getGL();
 		this.camera = new Camera(this.getGL());
+		
+		{
+			this.gl.glEnable(GL.GL_DEPTH_TEST);
+			this.gl.glDepthFunc(GL.GL_LESS);
+		}
 		
 		this.initialize(drawable);
 		
@@ -173,14 +135,6 @@ public abstract class Scene implements GLEventListener, Serializable {
 	}
 	
 	protected void render() {
-//		for (final Map.Entry<ExtendedShaderProgram, List<Geometry>> entry : this.getRenderingPool().entrySet()) {
-//			entry.getKey().useProgram(true);
-//			
-//			for (final Geometry geometry : entry.getValue()) {
-//				geometry.render();
-//			}
-//		}
-		
 		this.shaderPrograms.values().forEach(ExtendedShaderProgram::run);
 	}
 	

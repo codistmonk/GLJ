@@ -69,8 +69,10 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	
 	public final synchronized void run() {
 		this.useProgram(true);
-		this.uniformSetters.forEach(uniformSetter -> uniformSetter.applyTo(this));
-		this.geometries.forEach(Geometry::render);
+		this.geometries.forEach(geometry -> {
+			this.uniformSetters.forEach(uniformSetter -> uniformSetter.applyTo(this, geometry));
+			geometry.render();
+		});
 	}
 	
 	public final synchronized void destroy() {
@@ -300,7 +302,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			return this.uniformName;
 		}
 		
-		public abstract void applyTo(ExtendedShaderProgram program);
+		public abstract void applyTo(ExtendedShaderProgram program, final Geometry geometry);
 		
 		/**
 		 * {@value}.
@@ -322,7 +324,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		}
 		
 		@Override
-		public final void applyTo(final ExtendedShaderProgram program) {
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
 			program.setUniform1f(this.getUniformName(), this.x);
 		}
 		
@@ -352,7 +354,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		}
 		
 		@Override
-		public final void applyTo(final ExtendedShaderProgram program) {
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
 			program.setUniform1fv(this.getUniformName(), this.count, this.value, this.offset);
 		}
 		
@@ -379,7 +381,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		}
 		
 		@Override
-		public final void applyTo(final ExtendedShaderProgram program) {
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
 			program.setUniform1fv(this.getUniformName(), this.count, this.value);
 		}
 		
@@ -403,7 +405,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		}
 		
 		@Override
-		public final void applyTo(final ExtendedShaderProgram program) {
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
 			program.setUniform1i(this.getUniformName(), this.x);
 		}
 		
@@ -433,7 +435,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		}
 		
 		@Override
-		public final void applyTo(final ExtendedShaderProgram program) {
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
 			program.setUniform1iv(this.getUniformName(), this.count, this.value, this.offset);
 		}
 		
@@ -460,7 +462,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		}
 		
 		@Override
-		public final void applyTo(final ExtendedShaderProgram program) {
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
 			program.setUniform1iv(this.getUniformName(), this.count, this.value);
 		}
 		
@@ -485,7 +487,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		}
 		
 		@Override
-		public final void applyTo(final ExtendedShaderProgram program) {
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
 			program.setUniform2f(this.getUniformName(), this.x, this.y);
 		}
 		
@@ -515,7 +517,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		}
 		
 		@Override
-		public final void applyTo(final ExtendedShaderProgram program) {
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
 			program.setUniform2fv(this.getUniformName(), this.count, this.value, this.offset);
 		}
 		
@@ -542,7 +544,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		}
 		
 		@Override
-		public final void applyTo(final ExtendedShaderProgram program) {
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
 			program.setUniform2fv(this.getUniformName(), this.count, this.value);
 		}
 		
@@ -567,7 +569,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		}
 		
 		@Override
-		public final void applyTo(final ExtendedShaderProgram program) {
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
 			program.setUniform2i(this.getUniformName(), this.x, this.y);
 		}
 		
@@ -597,7 +599,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		}
 		
 		@Override
-		public final void applyTo(final ExtendedShaderProgram program) {
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
 			program.setUniform2iv(this.getUniformName(), this.count, this.value, this.offset);
 		}
 		
@@ -624,7 +626,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		}
 		
 		@Override
-		public final void applyTo(final ExtendedShaderProgram program) {
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
 			program.setUniform2iv(this.getUniformName(), this.count, this.value);
 		}
 		
@@ -650,7 +652,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		}
 		
 		@Override
-		public final void applyTo(final ExtendedShaderProgram program) {
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
 			program.setUniform3f(this.getUniformName(), this.x, this.y, this.z);
 		}
 		
@@ -680,7 +682,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		}
 		
 		@Override
-		public final void applyTo(final ExtendedShaderProgram program) {
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
 			program.setUniform3fv(this.getUniformName(), this.count, this.value, this.offset);
 		}
 		
@@ -707,7 +709,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		}
 		
 		@Override
-		public final void applyTo(final ExtendedShaderProgram program) {
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
 			program.setUniform3fv(this.getUniformName(), this.count, this.value);
 		}
 		
@@ -733,7 +735,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		}
 		
 		@Override
-		public final void applyTo(final ExtendedShaderProgram program) {
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
 			program.setUniform3i(this.getUniformName(), this.x, this.y, this.z);
 		}
 		
@@ -763,7 +765,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		}
 		
 		@Override
-		public final void applyTo(final ExtendedShaderProgram program) {
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
 			program.setUniform3iv(this.getUniformName(), this.count, this.value, this.offset);
 		}
 		
@@ -790,7 +792,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		}
 		
 		@Override
-		public final void applyTo(final ExtendedShaderProgram program) {
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
 			program.setUniform3iv(this.getUniformName(), this.count, this.value);
 		}
 		
@@ -817,7 +819,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		}
 		
 		@Override
-		public final void applyTo(final ExtendedShaderProgram program) {
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
 			program.setUniform4f(this.getUniformName(), this.x, this.y, this.z, this.w);
 		}
 		
@@ -847,7 +849,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		}
 		
 		@Override
-		public final void applyTo(final ExtendedShaderProgram program) {
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
 			program.setUniform4fv(this.getUniformName(), this.count, this.value, this.offset);
 		}
 		
@@ -874,7 +876,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		}
 		
 		@Override
-		public final void applyTo(final ExtendedShaderProgram program) {
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
 			program.setUniform4fv(this.getUniformName(), this.count, this.value);
 		}
 		
@@ -901,7 +903,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		}
 		
 		@Override
-		public final void applyTo(final ExtendedShaderProgram program) {
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
 			program.setUniform4i(this.getUniformName(), this.x, this.y, this.z, this.w);
 		}
 		
@@ -931,7 +933,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		}
 		
 		@Override
-		public final void applyTo(final ExtendedShaderProgram program) {
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
 			program.setUniform4iv(this.getUniformName(), this.count, this.value, this.offset);
 		}
 		
@@ -958,7 +960,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		}
 		
 		@Override
-		public final void applyTo(final ExtendedShaderProgram program) {
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
 			program.setUniform4iv(this.getUniformName(), this.count, this.value);
 		}
 		
@@ -991,7 +993,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		}
 		
 		@Override
-		public final void applyTo(final ExtendedShaderProgram program) {
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
 			program.setUniformMatrix2fv(this.getUniformName(), this.count, this.transpose, this.value, this.offset);
 		}
 		
@@ -1021,7 +1023,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		}
 		
 		@Override
-		public final void applyTo(final ExtendedShaderProgram program) {
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
 			program.setUniformMatrix2fv(this.getUniformName(), this.count, this.transpose, this.value);
 		}
 		
@@ -1054,7 +1056,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		}
 		
 		@Override
-		public final void applyTo(final ExtendedShaderProgram program) {
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
 			program.setUniformMatrix3fv(this.getUniformName(), this.count, this.transpose, this.value, this.offset);
 		}
 		
@@ -1084,7 +1086,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		}
 		
 		@Override
-		public final void applyTo(final ExtendedShaderProgram program) {
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
 			program.setUniformMatrix3fv(this.getUniformName(), this.count, this.transpose, this.value);
 		}
 		
@@ -1117,7 +1119,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		}
 		
 		@Override
-		public final void applyTo(final ExtendedShaderProgram program) {
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
 			program.setUniformMatrix4fv(this.getUniformName(), this.count, this.transpose, this.value, this.offset);
 		}
 		
@@ -1147,7 +1149,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		}
 		
 		@Override
-		public final void applyTo(final ExtendedShaderProgram program) {
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
 			program.setUniformMatrix4fv(this.getUniformName(), this.count, this.transpose, this.value);
 		}
 		

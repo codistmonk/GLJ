@@ -56,6 +56,14 @@ public final class GLJTools {
 	 */
 	public static final int INT_BYTE_COUNT = Integer.SIZE / 8;
 	
+	public static final Matrix4f newIdentity() {
+		final Matrix4f result = new Matrix4f();
+		
+		result.setIdentity();
+		
+		return result;
+	}
+	
 	public static final void unzip(final ZipInputStream input, final String outputRoot) {
 		try {
 			ZipEntry entry = input.getNextEntry();
