@@ -7,7 +7,6 @@ import javax.media.opengl.GLAutoDrawable;
 
 import glj2.core.Camera;
 import glj2.core.GLSwingContext;
-import glj2.core.MatrixConverter;
 import glj2.core.Orbiter;
 import glj2.core.Scene;
 import glj2.core.Shaders;
@@ -35,8 +34,6 @@ public final class Demo2 {
 		final GLSwingContext context = new GLSwingContext();
 		
 		final Scene scene = new Scene() {
-			
-			private final MatrixConverter transform = new MatrixConverter();
 			
 			private final Orbiter orbiter = new Orbiter(this);
 			
@@ -78,10 +75,8 @@ public final class Demo2 {
 			protected final void beforeRender() {
 				super.beforeRender();
 				
-				this.getCamera().getProjectionView(this.transform.getMatrix());
-				
 				this.getShaderProgram("sp").useProgram(true).setUniformMatrix4fv(
-						"transform", 1, true, this.transform.updateBuffer());
+						"transform", 1, true, this.getProjectionView().getBuffer());
 			}
 			
 			/**

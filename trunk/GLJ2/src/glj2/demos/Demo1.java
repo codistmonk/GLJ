@@ -37,8 +37,6 @@ public final class Demo1 {
 			
 			private final FrameRate frameRate = new FrameRate(1_000_000_000L);
 			
-			private final MatrixConverter transform = new MatrixConverter();
-			
 			private final Orbiter orbiter = new Orbiter(this);
 			
 			{
@@ -90,10 +88,8 @@ public final class Demo1 {
 			protected final void beforeRender() {
 				super.beforeRender();
 				
-				this.getCamera().getProjectionView(this.transform.getMatrix());
-				
 				this.getShaderProgram("sp 3 3").useProgram(true).setUniformMatrix4fv(
-						"transform", 1, true, this.transform.updateBuffer());
+						"transform", 1, true, this.getProjectionView().getBuffer());
 			}
 			
 			@Override
