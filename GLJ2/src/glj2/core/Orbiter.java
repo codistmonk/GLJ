@@ -12,8 +12,6 @@ import java.awt.event.MouseWheelEvent;
 
 import javax.vecmath.Point3f;
 
-import net.sourceforge.aprog.tools.Tools;
-
 /**
  * @author codistmonk (creation 2014-10-17)
  */
@@ -23,7 +21,7 @@ public final class Orbiter extends MouseHandler {
 	
 	private Point mouse;
 	
-	private final Point3f target = new Point3f(0,0,-3);
+	private final Point3f target = new Point3f();
 	
 	private double distance = 3F;
 	
@@ -66,8 +64,6 @@ public final class Orbiter extends MouseHandler {
 		} else {
 			this.distance *= 1.2;
 		}
-		
-		Tools.debugPrint(this.distance);
 		
 		this.updateSceneCamera();
 	}
