@@ -29,17 +29,14 @@ public final class Orbiter extends MouseHandler {
 	
 	private double verticalRadians;
 	
-	private float fieldWidth;
-	
-	private float fieldDepth;
+	private float clippingDepth;
 	
 	public Orbiter(final Scene scene) {
 		super(null);
 		this.scene = scene;
 		this.target = new Point3f();
 		this.distance = 4F;
-		this.fieldWidth = 2F;
-		this.fieldDepth = 1F;
+		this.clippingDepth = 1F;
 	}
 	
 	public final float getDistance() {
@@ -47,7 +44,7 @@ public final class Orbiter extends MouseHandler {
 	}
 	
 	public final void setDistance(final float distance) {
-		this.distance = Math.max(this.fieldDepth * 0.5001F, distance);
+		this.distance = Math.max(this.clippingDepth * 0.5001F, distance);
 	}
 	
 	public final double getHorizontalRadians() {
@@ -70,20 +67,12 @@ public final class Orbiter extends MouseHandler {
 		return this.target;
 	}
 	
-	public final float getFieldWidth() {
-		return this.fieldWidth;
-	}
-	
-	public final void setFieldWidth(final float fieldWidth) {
-		this.fieldWidth = fieldWidth;
-	}
-	
 	public final float getFieldDepth() {
-		return this.fieldDepth;
+		return this.clippingDepth;
 	}
 	
-	public final void setFieldDepth(final float fieldDepth) {
-		this.fieldDepth = fieldDepth;
+	public final void setClippingDepth(final float clippingDepth) {
+		this.clippingDepth = clippingDepth;
 	}
 	
 	@Override
@@ -127,13 +116,13 @@ public final class Orbiter extends MouseHandler {
 		{
 			final float[] clipping = camera.getClipping();
 			final float oldNear = clipping[4];
-			final float near = distance - this.fieldDepth / 2F;
+			final float near = distance - this.clippingDepth / 2F;
 			
 			for (int i = 0; i <= 4; ++i) {
 				clipping[i] *= near / oldNear;
 			}
 			
-			clipping[5] = near + this.fieldDepth;
+			clipping[5] = near + this.clippingDepth;
 			
 			camera.setProjection();
 		}

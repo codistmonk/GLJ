@@ -39,6 +39,12 @@ public final class Demo1 {
 			
 			private final MatrixConverter transform = new MatrixConverter();
 			
+			private final Orbiter orbiter = new Orbiter(this);
+			
+			{
+				this.orbiter.addTo(context.getCanvas());
+			}
+			
 			@Override
 			protected final void initialize(final GLAutoDrawable drawable) {
 				final GL4 gl = this.getGL();
@@ -55,13 +61,13 @@ public final class Demo1 {
 				}
 				
 				this.add("tr 1", new Triangle(gl)
-						.addVertex(0F, 0F, -2F, 1F, 0F, 0F, 1F)
-						.addVertex(1F, 0F, -2F, 0F, 1F, 0F, 1F)
-						.addVertex(0F, 1F, -2F, 0F, 0F, 1F, 1F));
+						.addVertex(0F, 0F, +1F, 1F, 0F, 0F, 1F)
+						.addVertex(1F, 0F, +1F, 0F, 1F, 0F, 1F)
+						.addVertex(0F, 1F, +1F, 0F, 0F, 1F, 1F));
 				this.add("tr 2", new Triangle(gl)
-						.addVertex(0F, 0F, -3F, 0F, 1F, 1F, 1F)
-						.addVertex(1F, 0F, -3F, 1F, 0F, 1F, 1F)
-						.addVertex(0F, 1F, -3F, 1F, 1F, 0F, 1F));
+						.addVertex(0F, 0F, -1F, 0F, 1F, 1F, 1F)
+						.addVertex(1F, 0F, -1F, 1F, 0F, 1F, 1F)
+						.addVertex(0F, 1F, -1F, 1F, 1F, 0F, 1F));
 				
 				this.add("sp 1 1", newProgramV1F1(gl));
 				this.add("sp 1 2", newProgramV1F2(gl));
@@ -69,11 +75,15 @@ public final class Demo1 {
 				this.add("sp 3 3", newProgramV3F3(gl));
 				
 				this.add(this.getShaderProgram("sp 3 3"), this.getGeometries().values());
+				
+				this.orbiter.setDistance(8F);
+				this.orbiter.setClippingDepth(4F);
 			}
 			
 			@Override
 			protected final void reshaped() {
-				this.getCamera().setProjectionType(ProjectionType.PERSPECTIVE).setProjection(-1F, 1F, -1F, 1F, 0.5F, 40F);
+				this.getCamera().setProjectionType(ProjectionType.PERSPECTIVE).setProjection(-1F, 1F, -1F, 1F);
+				this.orbiter.updateSceneCamera();
 			}
 			
 			@Override
@@ -103,7 +113,6 @@ public final class Demo1 {
 		};
 		
 		context.getCanvas().addGLEventListener(scene);
-		new Orbiter(scene).addTo(context.getCanvas());
 		context.show();
 	}
 	
