@@ -10,13 +10,14 @@ import static javax.media.opengl.GL.GL_FLOAT;
 import static javax.media.opengl.GL.GL_LINES;
 import static javax.media.opengl.GL.GL_POINTS;
 import static net.sourceforge.aprog.tools.Tools.debugPrint;
+
 import glj.Scene;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
+import javax.media.opengl.GL4;
 import javax.media.opengl.GLDebugListener;
 import javax.media.opengl.GLDebugMessage;
 import javax.vecmath.Matrix4f;
@@ -184,13 +185,21 @@ public final class StandardScene extends Scene {
 		
 		private final int primitiveType;
 		
-		public PrimitiveRenderer(final int primitiveType, final ShaderProgram shaderProgram, final VBO locations,
+		private final float primitiveSize;
+		
+		public PrimitiveRenderer(final int primitiveType, final float primitiveSize, final ShaderProgram shaderProgram, final VBO locations,
 				final VBO colors, final Matrix4f position) {
 			this.primitiveType = primitiveType;
+			this.primitiveSize = primitiveSize;
 			this.shaderProgram = shaderProgram;
 			this.locations = locations;
 			this.colors = colors;
 			this.position = position;
+		}
+		
+		public PrimitiveRenderer(final int primitiveType, final ShaderProgram shaderProgram, final VBO locations,
+				final VBO colors, final Matrix4f position) {
+			this(primitiveType, 1.0F, shaderProgram, locations, colors, position);
 		}
 		
 		public final ShaderProgram getShaderProgram() {
@@ -213,15 +222,35 @@ public final class StandardScene extends Scene {
 			return this.primitiveType;
 		}
 		
+		public final float getPrimitiveSize() {
+			return this.primitiveSize;
+		}
+		
 		@Override
 		public final void render() {
+			final GL4 gl = StandardScene.this.getGL();
+			
+			switch (this.getPrimitiveType()) {
+			case GL_POINTS:
+				gl.glPointSize(this.getPrimitiveSize()); StandardScene.this.debugGL();
+				break;
+			case GL_LINES:
+				gl.glLineWidth(this.getPrimitiveSize()); StandardScene.this.debugGL();
+				break;
+			default:
+				break;
+			}
+			
 			this.getShaderProgram().setUniform("projection", StandardScene.this.getDefaultCamera().getProjection());
 			this.getShaderProgram().setUniform("view", StandardScene.this.getDefaultCamera().getPosition());
 			this.getShaderProgram().setUniform("model", this.getPosition());
 			this.getShaderProgram().bindAttribute("vertexLocation", this.getLocations());
 			this.getShaderProgram().bindAttribute("vertexColor", this.getColors());
+			
 			this.getShaderProgram().use();
-			StandardScene.this.getGL().glDrawArrays(this.getPrimitiveType(), 0, this.getLocations().getComponentCount()); StandardScene.this.debugGL();
+			
+			gl.glDrawArrays(this.getPrimitiveType(), 0, this.getLocations().getComponentCount()); StandardScene.this.debugGL();
+			
 			this.getShaderProgram().unuse();
 		}
 		
