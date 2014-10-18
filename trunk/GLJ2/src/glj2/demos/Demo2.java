@@ -1,15 +1,21 @@
 package glj2.demos;
 
+import static glj2.core.ExtendedShaderProgram.fragmentShader;
+import static glj2.core.Shaders.*;
+
 import java.awt.Dimension;
 
+import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GLAutoDrawable;
 import javax.vecmath.Matrix4f;
 import javax.vecmath.Vector3f;
 
+import com.jogamp.opengl.util.glsl.ShaderCode;
+
 import glj2.core.Camera;
 import glj2.core.ExtendedShaderProgram;
-import glj2.core.ExtendedShaderProgram.AbstractUniformSetter;
+import glj2.core.ExtendedShaderProgram.UniformSetter;
 import glj2.core.GLSwingContext;
 import glj2.core.Geometry;
 import glj2.core.MatrixConverter;
@@ -31,6 +37,25 @@ public final class Demo2 {
 		throw new IllegalInstantiationException();
 	}
 	
+	public static final ShaderCode PSEUDOSPHERE_SHADER = fragmentShader(
+			"#version 330\n"
+			+ "in vec4 interpolatedColor;\n"
+			+ "out vec4 fragmentColor;\n"
+			+ "\n"
+			+ "float square(in float x) { return x * x; }\n"
+			+ "\n"
+			+ "float distance2(in float x, in float y, in float x0, in float y0) {"
+			+ " return square(x - x0) + square(y - y0);"
+			+ " }\n"
+			+ "\n"
+			+ "void main() {\n"
+			+ "	float x = interpolatedColor.x;\n"
+			+ "	float y = interpolatedColor.y;\n"
+			+ "	float a = distance2(x, y, 0.5, 0.5);\n"
+			+ "	float b = distance2(x, y, 0.3, 0.7);\n"
+			+ "	fragmentColor = vec4((1 - b) * vec3(1, 1, 1), a <= 0.25 ? 1 : 0);\n"
+			+ "}\n");
+	
 	/**
 	 * @param commandLineArguments
 	 * <br>Not used
@@ -41,6 +66,8 @@ public final class Demo2 {
 		final GLSwingContext context = new GLSwingContext();
 		
 		final Scene scene = new Scene() {
+			
+			private final FrameRate frameRate = new FrameRate(1_000_000_000L);
 			
 			private final Orbiter orbiter = new Orbiter(this);
 			
@@ -54,6 +81,11 @@ public final class Demo2 {
 				
 				final GL2ES2 gl = this.getGL();
 				
+				{
+					gl.glEnable(GL.GL_BLEND);
+					gl.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA);
+				}
+				
 				this.add("normal", Shaders.newProgramV3F3(gl))
 					.addUniformSetters(new UniformMatrix4FloatBuffer("transform", 1, true, this.getProjectionView().getBuffer()))
 					.addGeometries(this.add("quad1", new Quad(this.getGL())
@@ -62,8 +94,11 @@ public final class Demo2 {
 						.addVertex(1F, 1F, 0F, 0F, 1F, 0F, 1F)
 						.addVertex(0F, 1F, 0F, 0F, 1F, 1F, 1F)));
 				
-				this.add("billboarded", Shaders.newProgramV3F3(gl))
-						.addUniformSetters(new AbstractUniformSetter("transform") {
+				this.add("billboarded", new ExtendedShaderProgram(gl)
+				.attribute("vertexLocation", 0)
+				.attribute("vertexColor", 1)
+				.build(VERTEX_SHADER_3, PSEUDOSPHERE_SHADER))
+						.addUniformSetters(new UniformSetter() {
 							
 							private final MatrixConverter billboardingTransform = new MatrixConverter();
 							
@@ -75,7 +110,7 @@ public final class Demo2 {
 								billboardingMatrix.mul(camera.getView(), geometry.getPosition());
 								billboardingMatrix.mul(camera.getProjection(), resetRotation(billboardingMatrix));
 								
-								program.setUniformMatrix4fv(this.getUniformName(), 1, true, this.billboardingTransform.updateBuffer());
+								program.setUniformMatrix4fv("transform", 1, true, this.billboardingTransform.updateBuffer());
 							}
 							
 							/**
@@ -85,10 +120,10 @@ public final class Demo2 {
 							
 						})
 						.addGeometries(this.add("quad2", new Quad(this.getGL())
-						.addVertex(0F, 0F, 0F, 1F, 0F, 0F, 1F)
-						.addVertex(1F, 0F, 0F, 1F, 1F, 0F, 1F)
-						.addVertex(1F, 1F, 0F, 0F, 1F, 0F, 1F)
-						.addVertex(0F, 1F, 0F, 0F, 1F, 1F, 1F)));
+						.addVertex(0F, 0F, 0F, 0F, 0F, 0F, 1F)
+						.addVertex(1F, 0F, 0F, 1F, 0F, 0F, 1F)
+						.addVertex(1F, 1F, 0F, 1F, 1F, 0F, 1F)
+						.addVertex(0F, 1F, 0F, 0F, 1F, 0F, 1F)));
 				
 				this.getGeometry("quad2").getPosition().setTranslation(new Vector3f(-1F, 0F, 0F));
 				
@@ -106,6 +141,15 @@ public final class Demo2 {
 				camera.setProjectionType(ProjectionType.PERSPECTIVE).setProjection(-aspectRatio, aspectRatio, -1F, 1F);
 				
 				this.orbiter.updateSceneCamera();
+			}
+			
+			@Override
+			protected final void afterRender() {
+				super.afterRender();
+				
+				if (this.frameRate.ping()) {
+					context.getFrame().setTitle("" + this.frameRate.get());
+				}
 			}
 			
 			/**

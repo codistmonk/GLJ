@@ -74,6 +74,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			this.uniformSetters.forEach(uniformSetter -> uniformSetter.applyTo(this, geometry));
 			geometry.render();
 		});
+		this.useProgram(false);
 	}
 	
 	public final synchronized void destroy() {
