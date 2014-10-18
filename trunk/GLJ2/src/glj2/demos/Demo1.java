@@ -2,8 +2,9 @@ package glj2.demos;
 
 import static glj2.core.Shaders.*;
 import static net.sourceforge.aprog.tools.Tools.debugPrint;
+
+import glj2.core.ExtendedShaderProgram.UniformMatrix4FloatBuffer;
 import glj2.core.GLSwingContext;
-import glj2.core.MatrixConverter;
 import glj2.core.Orbiter;
 import glj2.core.Scene;
 import glj2.core.Camera.ProjectionType;
@@ -67,12 +68,12 @@ public final class Demo1 {
 						.addVertex(1F, 0F, -1F, 1F, 0F, 1F, 1F)
 						.addVertex(0F, 1F, -1F, 1F, 1F, 0F, 1F));
 				
-				this.add("sp 1 1", newProgramV1F1(gl));
-				this.add("sp 1 2", newProgramV1F2(gl));
-				this.add("sp 2 3", newProgramV2F3(gl));
-				this.add("sp 3 3", newProgramV3F3(gl));
-				
-				this.add(this.getShaderProgram("sp 3 3"), this.getGeometries().values());
+//				this.add("sp 1 1", newProgramV1F1(gl));
+//				this.add("sp 1 2", newProgramV1F2(gl));
+//				this.add("sp 2 3", newProgramV2F3(gl));
+				this.add("sp 3 3", newProgramV3F3(gl))
+					.addUniformSetters(new UniformMatrix4FloatBuffer("transform", 1, true, this.getProjectionView().getBuffer()))
+					.addGeometries(this.getGeometries().values());
 				
 				this.orbiter.setDistance(8F);
 				this.orbiter.setClippingDepth(4F);
@@ -82,14 +83,6 @@ public final class Demo1 {
 			protected final void reshaped() {
 				this.getCamera().setProjectionType(ProjectionType.PERSPECTIVE).setProjection(-1F, 1F, -1F, 1F);
 				this.orbiter.updateSceneCamera();
-			}
-			
-			@Override
-			protected final void beforeRender() {
-				super.beforeRender();
-				
-				this.getShaderProgram("sp 3 3").useProgram(true).setUniformMatrix4fv(
-						"transform", 1, true, this.getProjectionView().getBuffer());
 			}
 			
 			@Override

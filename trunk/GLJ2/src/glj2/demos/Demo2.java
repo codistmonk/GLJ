@@ -11,7 +11,7 @@ import glj2.core.Orbiter;
 import glj2.core.Scene;
 import glj2.core.Shaders;
 import glj2.core.Camera.ProjectionType;
-
+import glj2.core.ExtendedShaderProgram.UniformMatrix4FloatBuffer;
 import net.sourceforge.aprog.swing.SwingTools;
 import net.sourceforge.aprog.tools.IllegalInstantiationException;
 
@@ -47,9 +47,9 @@ public final class Demo2 {
 				
 				final GL2ES2 gl = this.getGL();
 				
-				this.add(
-						this.add("sp", Shaders.newProgramV3F3(gl)),
-						this.add("quad", new Quad(this.getGL())
+				this.add("normal", Shaders.newProgramV3F3(gl))
+					.addUniformSetters(new UniformMatrix4FloatBuffer("transform", 1, true, this.getProjectionView().getBuffer()))
+					.addGeometries(this.add("quad", new Quad(this.getGL())
 						.addVertex(0F, 0F, 0F, 1F, 0F, 0F, 1F)
 						.addVertex(1F, 0F, 0F, 1F, 1F, 0F, 1F)
 						.addVertex(1F, 1F, 0F, 0F, 1F, 0F, 1F)
@@ -69,14 +69,6 @@ public final class Demo2 {
 				camera.setProjectionType(ProjectionType.PERSPECTIVE).setProjection(-aspectRatio, aspectRatio, -1F, 1F);
 				
 				this.orbiter.updateSceneCamera();
-			}
-			
-			@Override
-			protected final void beforeRender() {
-				super.beforeRender();
-				
-				this.getShaderProgram("sp").useProgram(true).setUniformMatrix4fv(
-						"transform", 1, true, this.getProjectionView().getBuffer());
 			}
 			
 			/**

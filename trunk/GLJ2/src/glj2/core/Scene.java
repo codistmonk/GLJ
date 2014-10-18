@@ -69,20 +69,20 @@ public abstract class Scene implements GLEventListener, Serializable {
 		return this.renderingPool;
 	}
 	
-	public final Scene add(final ExtendedShaderProgram shaderProgram, final Geometry... geometries) {
-		return this.add(shaderProgram, Arrays.asList(geometries));
-	}
-	
-	public final Scene add(final ExtendedShaderProgram shaderProgram, final Collection<Geometry> geometries) {
-		if (shaderProgram == null) {
-			throw new NullPointerException();
-		}
-		
-		this.getRenderingPool().compute(shaderProgram,
-				(k, v) -> v != null ? v : new ArrayList<>()).addAll(geometries);
-		
-		return this;
-	}
+//	public final Scene add(final ExtendedShaderProgram shaderProgram, final Geometry... geometries) {
+//		return this.add(shaderProgram, Arrays.asList(geometries));
+//	}
+//	
+//	public final Scene add(final ExtendedShaderProgram shaderProgram, final Collection<Geometry> geometries) {
+//		if (shaderProgram == null) {
+//			throw new NullPointerException();
+//		}
+//		
+//		this.getRenderingPool().compute(shaderProgram,
+//				(k, v) -> v != null ? v : new ArrayList<>()).addAll(geometries);
+//		
+//		return this;
+//	}
 	
 	public final Scene remove(final ExtendedShaderProgram shaderProgram, final Geometry... geometries) {
 		return this.remove(shaderProgram, Arrays.asList(geometries));
@@ -173,13 +173,15 @@ public abstract class Scene implements GLEventListener, Serializable {
 	}
 	
 	protected void render() {
-		for (final Map.Entry<ExtendedShaderProgram, List<Geometry>> entry : this.getRenderingPool().entrySet()) {
-			entry.getKey().useProgram(true);
-			
-			for (final Geometry geometry : entry.getValue()) {
-				geometry.render();
-			}
-		}
+//		for (final Map.Entry<ExtendedShaderProgram, List<Geometry>> entry : this.getRenderingPool().entrySet()) {
+//			entry.getKey().useProgram(true);
+//			
+//			for (final Geometry geometry : entry.getValue()) {
+//				geometry.render();
+//			}
+//		}
+		
+		this.shaderPrograms.values().forEach(ExtendedShaderProgram::run);
 	}
 	
 	protected void afterRender() {
