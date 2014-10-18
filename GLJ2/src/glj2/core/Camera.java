@@ -29,13 +29,16 @@ public final class Camera implements Serializable {
 	
 	private final Matrix4f projection;
 	
+	private ProjectionType projectionType;
+	
 	public Camera(final GL gl) {
 		this.gl = gl;
 		this.canvasSize = new Dimension(640, 480);
 		this.viewport = new Rectangle2D.Float(0F, 0F, 0.9999F, 0.9999F);
-		this.clipping = new float[6];
+		this.clipping = new float[] { -1F, 1F, -1F, 1F, 1F, 2F };
 		this.view = new Matrix4f();
 		this.projection = new Matrix4f();
+		this.projectionType = ProjectionType.ORTHOGRAPHIC;
 		
 		this.view.setIdentity();
 		this.projection.setIdentity();
@@ -43,7 +46,21 @@ public final class Camera implements Serializable {
 		gl.glEnable(GL.GL_SCISSOR_TEST);
 	}
 	
-	public final synchronized Camera setOrthogonal() {
+	public final synchronized ProjectionType getProjectionType() {
+		return this.projectionType;
+	}
+	
+	public final synchronized Camera setProjectionType(final ProjectionType projectionType) {
+		this.projectionType = projectionType;
+		
+		return this;
+	}
+	
+	public final synchronized float[] getClipping() {
+		return this.clipping;
+	}
+	
+	public final synchronized Camera setOrthographic() {
 		final float left = this.clipping[0];
 		final float right = this.clipping[1];
 		final float bottom = this.clipping[2];
@@ -57,23 +74,23 @@ public final class Camera implements Serializable {
 		final float ty = -(bottom + top) / height;
 		final float tz = -(near + far) / depth;
 		
-		this.getView().setRow(0, 2F / width, 0F, 0F, tx);
-		this.getView().setRow(1, 0F, 2F / height, 0F, ty);
-		this.getView().setRow(2, 0F, 0F, -2F / depth, tz);
-		this.getView().setRow(3, 0F, 0F,0F, 1F);
+		this.getProjection().setRow(0, 2F / width, 0F, 0F, tx);
+		this.getProjection().setRow(1, 0F, 2F / height, 0F, ty);
+		this.getProjection().setRow(2, 0F, 0F, -2F / depth, tz);
+		this.getProjection().setRow(3, 0F, 0F,0F, 1F);
 		
 		return this;
 	}
 	
-	public final synchronized Camera setOrthogonal(final float left, final float right, final float bottom, final float top) {
-		return this.setOrthogonal(left, right, bottom, top, this.clipping[4], this.clipping[5]);
+	public final synchronized Camera setProjection(final float left, final float right, final float bottom, final float top) {
+		return this.setProjection(left, right, bottom, top, this.clipping[4], this.clipping[5]);
 	}
 	
-	public final synchronized Camera setOrthogonal(final float near, final float far) {
-		return this.setOrthogonal(this.clipping[0], this.clipping[1], this.clipping[2], this.clipping[3], near, far);
+	public final synchronized Camera setProjection(final float near, final float far) {
+		return this.setProjection(this.clipping[0], this.clipping[1], this.clipping[2], this.clipping[3], near, far);
 	}
 	
-	public final synchronized Camera setOrthogonal(final float left, final float right,
+	public final synchronized Camera setProjection(final float left, final float right,
 			final float bottom, final float top, final float near, final float far) {
 		this.clipping[0] = left;
 		this.clipping[1] = right;
@@ -82,51 +99,13 @@ public final class Camera implements Serializable {
 		this.clipping[4] = near;
 		this.clipping[5] = far;
 		
-		return this.setOrthogonal();
+		return this.setProjection();
 	}
 	
-	public final synchronized Camera setPerspective() {
-		final float left = this.clipping[0];
-		final float right = this.clipping[1];
-		final float bottom = this.clipping[2];
-		final float top = this.clipping[3];
-		final float near = this.clipping[4];
-		final float far = this.clipping[5];
-		final float width = right - left;
-		final float height = top - bottom;
-		final float depth = far - near;
-		final float n2 = 2F * near;
-		final float a = (left + right) / width;
-		final float b = (bottom + top) / height;
-		final float c = -(near + far) / depth;
-		final float d = -n2 * far / depth;
-		
-		this.getProjection().setRow(0, n2 / width, 0F, a, 0F);
-		this.getProjection().setRow(1, 0F, n2 / height, b, 0F);
-		this.getProjection().setRow(2, 0F, 0F, c, d);
-		this.getProjection().setRow(3, 0F, 0F, -1F, 0F);
+	public final synchronized Camera setProjection() {
+		this.getProjectionType().setProjection(this.getClipping(), this.getProjection());
 		
 		return this;
-	}
-	
-	public final synchronized Camera setPerspective(final float left, final float right, final float bottom, final float top) {
-		return this.setPerspective(left, right, bottom, top, this.clipping[4], this.clipping[5]);
-	}
-	
-	public final synchronized Camera setPerspective(final float near, final float far) {
-		return this.setPerspective(this.clipping[0], this.clipping[1], this.clipping[2], this.clipping[3], near, far);
-	}
-	
-	public final synchronized Camera setPerspective(final float left, final float right,
-			final float bottom, final float top, final float near, final float far) {
-		this.clipping[0] = left;
-		this.clipping[1] = right;
-		this.clipping[2] = bottom;
-		this.clipping[3] = top;
-		this.clipping[4] = near;
-		this.clipping[5] = far;
-		
-		return this.setPerspective();
 	}
 	
 	public final synchronized Matrix4f getView() {
@@ -225,6 +204,65 @@ public final class Camera implements Serializable {
 	
 	public static final boolean isProportion(final float value) {
 		return 0F < value && value < 1F;
+	}
+	
+	/**
+	 * @author codistmonk (creation 2014-10-18)
+	 */
+	public static enum ProjectionType {
+		
+		ORTHOGRAPHIC {
+			
+			@Override
+			public final void setProjection(final float[] clipping, final Matrix4f projection) {
+				final float left = clipping[0];
+				final float right = clipping[1];
+				final float bottom = clipping[2];
+				final float top = clipping[3];
+				final float near = clipping[4];
+				final float far = clipping[5];
+				final float width = right - left;
+				final float height = top - bottom;
+				final float depth = far - near;
+				final float tx = -(left + right) / width;
+				final float ty = -(bottom + top) / height;
+				final float tz = -(near + far) / depth;
+				
+				projection.setRow(0, 2F / width, 0F, 0F, tx);
+				projection.setRow(1, 0F, 2F / height, 0F, ty);
+				projection.setRow(2, 0F, 0F, -2F / depth, tz);
+				projection.setRow(3, 0F, 0F,0F, 1F);
+			}
+			
+		}, PERSPECTIVE {
+			
+			@Override
+			public final void setProjection(final float[] clipping, final Matrix4f projection) {
+				final float left = clipping[0];
+				final float right = clipping[1];
+				final float bottom = clipping[2];
+				final float top = clipping[3];
+				final float near = clipping[4];
+				final float far = clipping[5];
+				final float width = right - left;
+				final float height = top - bottom;
+				final float depth = far - near;
+				final float n2 = 2F * near;
+				final float a = (left + right) / width;
+				final float b = (bottom + top) / height;
+				final float c = -(near + far) / depth;
+				final float d = -n2 * far / depth;
+				
+				projection.setRow(0, n2 / width, 0F, a, 0F);
+				projection.setRow(1, 0F, n2 / height, b, 0F);
+				projection.setRow(2, 0F, 0F, c, d);
+				projection.setRow(3, 0F, 0F, -1F, 0F);
+			}
+			
+		};
+		
+		public abstract void setProjection(float[] clipping, Matrix4f projection);
+		
 	}
 	
 }

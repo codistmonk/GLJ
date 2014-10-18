@@ -2,11 +2,11 @@ package glj2.demos;
 
 import static glj2.core.Shaders.*;
 import static net.sourceforge.aprog.tools.Tools.debugPrint;
-
 import glj2.core.GLSwingContext;
 import glj2.core.MatrixConverter;
 import glj2.core.Orbiter;
 import glj2.core.Scene;
+import glj2.core.Camera.ProjectionType;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL4;
@@ -73,7 +73,7 @@ public final class Demo1 {
 			
 			@Override
 			protected final void reshaped() {
-				this.getCamera().setPerspective(-1F, 1F, -1F, 1F, 0.5F, 40F);
+				this.getCamera().setProjectionType(ProjectionType.PERSPECTIVE).setProjection(-1F, 1F, -1F, 1F, 0.5F, 40F);
 			}
 			
 			@Override
