@@ -58,7 +58,7 @@ public final class Demo2 {
 						.addVertex(1F, 1F, 0F, 0F, 1F, 0F, 1F)
 						.addVertex(0F, 1F, 0F, 0F, 1F, 1F, 1F)));
 				
-				this.orbiter.setFieldDepth(4F);
+				this.orbiter.setClippingDepth(4F);
 				this.orbiter.setDistance(8F);
 			}
 			
