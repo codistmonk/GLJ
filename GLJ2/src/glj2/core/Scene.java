@@ -23,6 +23,8 @@ public abstract class Scene implements GLEventListener, Serializable {
 	
 	private Camera camera;
 	
+	private final MatrixConverter projectionView = new MatrixConverter();
+	
 	private final Map<String, ExtendedShaderProgram> shaderPrograms = new LinkedHashMap<>();
 	
 	private final Map<String, Geometry> geometries = new LinkedHashMap<>();
@@ -100,6 +102,7 @@ public abstract class Scene implements GLEventListener, Serializable {
 		return this;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public final <T extends GL> T getGL() {
 		return (T) this.gl;
 	}
@@ -149,11 +152,11 @@ public abstract class Scene implements GLEventListener, Serializable {
 		this.afterRender();
 	}
 	
-	protected void beforeRender() {
-		this.getGL().glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+	public final MatrixConverter getProjectionView() {
+		return this.projectionView;
 	}
 	
-	protected void afterRender() {
+	protected void initialize(final GLAutoDrawable drawable) {
 		// NOP
 	}
 	
@@ -161,8 +164,12 @@ public abstract class Scene implements GLEventListener, Serializable {
 		// NOP
 	}
 	
-	protected void initialize(final GLAutoDrawable drawable) {
-		// NOP
+	protected void beforeRender() {
+		this.getGL().glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+		
+		this.getCamera().getProjectionView(this.getProjectionView().getMatrix());
+		
+		this.getProjectionView().updateBuffer();
 	}
 	
 	protected void render() {
@@ -173,6 +180,10 @@ public abstract class Scene implements GLEventListener, Serializable {
 				geometry.render();
 			}
 		}
+	}
+	
+	protected void afterRender() {
+		// NOP
 	}
 	
 	/**
