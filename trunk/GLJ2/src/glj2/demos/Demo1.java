@@ -1,19 +1,13 @@
 package glj2.demos;
 
-import static glj2.core.ExtendedShaderProgram.fragmentShader;
-import static glj2.core.ExtendedShaderProgram.vertexShader;
+import static glj2.core.Shaders.*;
 import static net.sourceforge.aprog.tools.Tools.debugPrint;
 
-import com.jogamp.opengl.util.glsl.ShaderCode;
-
-import glj2.core.ExtendedShaderProgram;
 import glj2.core.GLSwingContext;
 import glj2.core.MatrixConverter;
 import glj2.core.Orbiter;
 import glj2.core.Scene;
-import glj2.core.Shaders;
 
-import javax.media.opengl.DebugGL4;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL4;
 import javax.media.opengl.GLAutoDrawable;
@@ -38,12 +32,6 @@ public final class Demo1 {
 		SwingTools.useSystemLookAndFeel();
 		
 		final GLSwingContext context = new GLSwingContext();
-		final ShaderCode vertexShaderCode1 = vertexShader(Shaders.VERTEX_SHADER_1);
-		final ShaderCode vertexShaderCode2 = vertexShader(Shaders.VERTEX_SHADER_2);
-		final ShaderCode vertexShaderCode3 = vertexShader(Shaders.VERTEX_SHADER_3);
-		final ShaderCode fragmentShaderCode1 = fragmentShader(Shaders.FRAGMENT_SHADER_1);
-		final ShaderCode fragmentShaderCode2 = fragmentShader(Shaders.FRAGMENT_SHADER_2);
-		final ShaderCode fragmentShaderCode3 = fragmentShader(Shaders.FRAGMENT_SHADER_3);
 		
 		final Scene scene = new Scene() {
 			
@@ -53,9 +41,7 @@ public final class Demo1 {
 			
 			@Override
 			protected final void initialize(final GLAutoDrawable drawable) {
-				drawable.setGL(new DebugGL4((GL4) drawable.getGL()));
-				
-				final GL4 gl = (GL4) drawable.getGL();
+				final GL4 gl = this.getGL();
 				final String renderer = gl.glGetString(GL.GL_RENDERER);
 				final String version = gl.glGetString(GL.GL_VERSION);
 				
@@ -77,16 +63,10 @@ public final class Demo1 {
 						.addVertex(1F, 0F, -3F, 1F, 0F, 1F, 1F)
 						.addVertex(0F, 1F, -3F, 1F, 1F, 0F, 1F));
 				
-				this.add("sp 1 1", new ExtendedShaderProgram(gl).build(vertexShaderCode1, fragmentShaderCode1));
-				this.add("sp 1 2", new ExtendedShaderProgram(gl).build(vertexShaderCode1, fragmentShaderCode2));
-				this.add("sp 2 3", new ExtendedShaderProgram(gl)
-						.attribute("vertexLocation", 0)
-						.attribute("vertexColor", 1)
-						.build(vertexShaderCode2, fragmentShaderCode3));
-				this.add("sp 3 3", new ExtendedShaderProgram(gl)
-						.attribute("vertexLocation", 0)
-						.attribute("vertexColor", 1)
-						.build(vertexShaderCode3, fragmentShaderCode3));
+				this.add("sp 1 1", newProgramV1F1(gl));
+				this.add("sp 1 2", newProgramV1F2(gl));
+				this.add("sp 2 3", newProgramV2F3(gl));
+				this.add("sp 3 3", newProgramV3F3(gl));
 				
 				this.add(this.getShaderProgram("sp 3 3"), this.getGeometries().values());
 			}

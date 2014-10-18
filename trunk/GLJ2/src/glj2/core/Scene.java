@@ -8,7 +8,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.media.opengl.DebugGL4;
 import javax.media.opengl.GL;
+import javax.media.opengl.GL4;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 
@@ -98,12 +100,14 @@ public abstract class Scene implements GLEventListener, Serializable {
 		return this;
 	}
 	
-	public final <T extends GL> GL getGL() {
-		return this.gl;
+	public final <T extends GL> T getGL() {
+		return (T) this.gl;
 	}
 	
 	@Override
 	public final void init(final GLAutoDrawable drawable) {
+		drawable.setGL(new DebugGL4((GL4) drawable.getGL()));
+		
 		this.gl = drawable.getGL();
 		this.camera = new Camera(this.getGL());
 		
