@@ -19,14 +19,14 @@ public final class Shaders {
 	}
 	
 	public static final ShaderCode VERTEX_SHADER_1 = vertexShader(
-			"#version 400\n" +
+			"#version 330\n" +
 			"in vec3 vertexLocation;\n" +
 			"void main() {\n" +
 			"	gl_Position = vec4(vertexLocation, 1.0);\n" +
 			"}\n");
 	
 	public static final ShaderCode VERTEX_SHADER_2 = vertexShader(
-			"#version 400\n" +
+			"#version 330\n" +
 			"in vec3 vertexLocation;\n" +
 			"in vec4 vertexColor;\n" +
 			"out vec4 interpolatedColor;\n" +
@@ -36,7 +36,7 @@ public final class Shaders {
 			"}\n");
 	
 	public static final ShaderCode VERTEX_SHADER_3 = vertexShader(
-			"#version 400\n" +
+			"#version 330\n" +
 			"uniform mat4 transform;\n" +
 			"in vec3 vertexLocation;\n" +
 			"in vec4 vertexColor;\n" +
@@ -47,14 +47,14 @@ public final class Shaders {
 			"}\n");
 	
 	public static final ShaderCode FRAGMENT_SHADER_1 = fragmentShader(
-			"#version 400\n" +
+			"#version 330\n" +
 			"out vec4 fragmentColor;\n" +
 			"void main() {\n" +
 			"	fragmentColor = vec4(0.5, 0.0, 0.5, 1.0);\n" +
 			"}\n");
 	
 	public static final ShaderCode FRAGMENT_SHADER_2 = fragmentShader(
-			"#version 400\n" +
+			"#version 330\n" +
 			"uniform vec4 objectColor;\n" +
 			"out vec4 fragmentColor;\n" +
 			"void main() {\n" +
@@ -62,7 +62,7 @@ public final class Shaders {
 			"}\n");
 	
 	public static final ShaderCode FRAGMENT_SHADER_3 = fragmentShader(
-			"#version 400\n" +
+			"#version 330\n" +
 			"in vec4 interpolatedColor;\n" +
 			"out vec4 fragmentColor;\n" +
 			"void main() {\n" +
