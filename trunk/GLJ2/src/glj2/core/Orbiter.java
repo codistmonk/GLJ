@@ -21,17 +21,69 @@ public final class Orbiter extends MouseHandler {
 	
 	private Point mouse;
 	
-	private final Point3f target = new Point3f();
+	private final Point3f target;
 	
-	private double distance = 3F;
+	private float distance;
 	
 	private double horizontalRadians;
 	
 	private double verticalRadians;
 	
+	private float fieldWidth;
+	
+	private float fieldDepth;
+	
 	public Orbiter(final Scene scene) {
 		super(null);
 		this.scene = scene;
+		this.target = new Point3f();
+		this.distance = 4F;
+		this.fieldWidth = 2F;
+		this.fieldDepth = 1F;
+	}
+	
+	public final float getDistance() {
+		return this.distance;
+	}
+	
+	public final void setDistance(final float distance) {
+		this.distance = Math.max(this.fieldDepth * 0.5001F, distance);
+	}
+	
+	public final double getHorizontalRadians() {
+		return this.horizontalRadians;
+	}
+	
+	public final void setHorizontalRadians(final double horizontalRadians) {
+		this.horizontalRadians = horizontalRadians;
+	}
+	
+	public final double getVerticalRadians() {
+		return this.verticalRadians;
+	}
+	
+	public final void setVerticalRadians(final double verticalRadians) {
+		this.verticalRadians = verticalRadians;
+	}
+	
+	public final Point3f getTarget() {
+		return this.target;
+	}
+	
+	public final float getFieldWidth() {
+		return this.fieldWidth;
+	}
+	
+	public final void setFieldWidth(final float fieldWidth) {
+		this.fieldWidth = fieldWidth;
+	}
+	
+	public final float getFieldDepth() {
+		return this.fieldDepth;
+	}
+	
+	public final void setFieldDepth(final float fieldDepth) {
+		this.fieldDepth = fieldDepth;
 	}
 	
 	@Override
@@ -60,19 +112,36 @@ public final class Orbiter extends MouseHandler {
 	@Override
 	public final void mouseWheelMoved(final MouseWheelEvent event) {
 		if (event.getWheelRotation() < 0) {
-			this.distance *= 0.8;
+			this.setDistance(this.getDistance() * 0.8F);
 		} else {
-			this.distance *= 1.2;
+			this.setDistance(this.getDistance() * 1.2F);
 		}
 		
 		this.updateSceneCamera();
 	}
 	
 	public final void updateSceneCamera() {
-		this.scene.getCamera().setView(new Point3f(
-				this.target.x + (float) (this.distance * cos(this.verticalRadians) * sin(this.horizontalRadians)),
-				this.target.y + (float) (this.distance * sin(this.verticalRadians)),
-				this.target.z + (float) (this.distance * cos(this.verticalRadians) * cos(this.horizontalRadians))
+		final Camera camera = this.scene.getCamera();
+		final float distance = this.getDistance();
+		
+		{
+			final float[] clipping = camera.getClipping();
+			final float oldNear = clipping[4];
+			final float near = distance - this.fieldDepth / 2F;
+			
+			for (int i = 0; i <= 4; ++i) {
+				clipping[i] *= near / oldNear;
+			}
+			
+			clipping[5] = near + this.fieldDepth;
+			
+			camera.setProjection();
+		}
+		
+		camera.setView(new Point3f(
+				this.target.x + (float) (distance * cos(this.verticalRadians) * sin(this.horizontalRadians)),
+				this.target.y + (float) (distance * sin(this.verticalRadians)),
+				this.target.z + (float) (distance * cos(this.verticalRadians) * cos(this.horizontalRadians))
 				), this.target, GLJTools.UNIT_Y);
 	}
 	

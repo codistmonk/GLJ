@@ -1,15 +1,18 @@
 package glj2.demos;
 
-import javax.media.opengl.DebugGL4;
+import java.awt.Dimension;
+
 import javax.media.opengl.GL2ES2;
-import javax.media.opengl.GL4;
 import javax.media.opengl.GLAutoDrawable;
 
+import glj2.core.Camera;
 import glj2.core.GLSwingContext;
 import glj2.core.MatrixConverter;
 import glj2.core.Orbiter;
 import glj2.core.Scene;
 import glj2.core.Shaders;
+import glj2.core.Camera.ProjectionType;
+
 import net.sourceforge.aprog.swing.SwingTools;
 import net.sourceforge.aprog.tools.IllegalInstantiationException;
 
@@ -35,6 +38,12 @@ public final class Demo2 {
 			
 			private final MatrixConverter transform = new MatrixConverter();
 			
+			private final Orbiter orbiter = new Orbiter(this);
+			
+			{
+				this.orbiter.addTo(context.getCanvas());
+			}
+			
 			@Override
 			protected final void initialize(final GLAutoDrawable drawable) {
 				super.initialize(drawable);
@@ -48,11 +57,21 @@ public final class Demo2 {
 						.addVertex(1F, 0F, 0F, 1F, 1F, 0F, 1F)
 						.addVertex(1F, 1F, 0F, 0F, 1F, 0F, 1F)
 						.addVertex(0F, 1F, 0F, 0F, 1F, 1F, 1F)));
+				
+				this.orbiter.setFieldDepth(4F);
+				this.orbiter.setDistance(8F);
 			}
 			
 			@Override
 			protected final void reshaped() {
-				this.getCamera().setPerspective(-1F, 1F, -1F, 1F, 0.5F, 40F);
+				final Camera camera = this.getCamera();
+				
+				final Dimension canvasSize = camera.getCanvasSize();
+				final float aspectRatio = (float) canvasSize.width / canvasSize.height;
+				
+				camera.setProjectionType(ProjectionType.PERSPECTIVE).setProjection(-aspectRatio, aspectRatio, -1F, 1F);
+				
+				this.orbiter.updateSceneCamera();
 			}
 			
 			@Override
@@ -73,7 +92,6 @@ public final class Demo2 {
 		};
 		
 		context.getCanvas().addGLEventListener(scene);
-		new Orbiter(scene).addTo(context.getCanvas());
 		
 		context.show();
 	}
