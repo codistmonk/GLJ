@@ -9,7 +9,7 @@ import javax.vecmath.Vector3f;
 
 import glj2.core.Camera;
 import glj2.core.ExtendedShaderProgram;
-import glj2.core.ExtendedShaderProgram.UniformSetter;
+import glj2.core.ExtendedShaderProgram.AbstractUniformSetter;
 import glj2.core.GLSwingContext;
 import glj2.core.Geometry;
 import glj2.core.MatrixConverter;
@@ -63,7 +63,7 @@ public final class Demo2 {
 						.addVertex(0F, 1F, 0F, 0F, 1F, 1F, 1F)));
 				
 				this.add("billboarded", Shaders.newProgramV3F3(gl))
-						.addUniformSetters(new UniformSetter("transform") {
+						.addUniformSetters(new AbstractUniformSetter("transform") {
 							
 							private final MatrixConverter billboardingTransform = new MatrixConverter();
 							

@@ -37,7 +37,8 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		this.geometries = new ArrayList<>();
 	}
 	
-	public final synchronized ExtendedShaderProgram addUniformSetters(final Collection<UniformSetter> uniformSetters) {
+	public final synchronized ExtendedShaderProgram addUniformSetters(
+			final Collection<? extends UniformSetter> uniformSetters) {
 		this.uniformSetters.addAll(uniformSetters);
 		
 		return this;
@@ -290,19 +291,26 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static abstract class UniformSetter implements Serializable {
+	public static abstract interface UniformSetter extends Serializable {
+		
+		public abstract void applyTo(ExtendedShaderProgram program, Geometry geometry);
+		
+	}
+	
+	/**
+	 * @author codistmonk (creation 2014-10-18)
+	 */
+	public static abstract class AbstractUniformSetter implements UniformSetter {
 		
 		private final String uniformName;
 		
-		public UniformSetter(final String uniformName) {
+		public AbstractUniformSetter(final String uniformName) {
 			this.uniformName = uniformName;
 		}
 		
 		public final String getUniformName() {
 			return this.uniformName;
 		}
-		
-		public abstract void applyTo(ExtendedShaderProgram program, final Geometry geometry);
 		
 		/**
 		 * {@value}.
@@ -314,7 +322,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static final class Uniform1Float extends UniformSetter {
+	public static final class Uniform1Float extends AbstractUniformSetter {
 		
 		private final float x;
 		
@@ -338,7 +346,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static final class Uniform1Floats extends UniformSetter {
+	public static final class Uniform1Floats extends AbstractUniformSetter {
 		
 		private final int count;
 		
@@ -368,7 +376,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static final class Uniform1FloatBuffer extends UniformSetter {
+	public static final class Uniform1FloatBuffer extends AbstractUniformSetter {
 		
 		private final int count;
 		
@@ -395,7 +403,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static final class Uniform1Int extends UniformSetter {
+	public static final class Uniform1Int extends AbstractUniformSetter {
 		
 		private final int x;
 		
@@ -419,7 +427,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static final class Uniform1Ints extends UniformSetter {
+	public static final class Uniform1Ints extends AbstractUniformSetter {
 		
 		private final int count;
 		
@@ -449,7 +457,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static final class Uniform1IntBuffer extends UniformSetter {
+	public static final class Uniform1IntBuffer extends AbstractUniformSetter {
 		
 		private final int count;
 		
@@ -476,7 +484,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static final class Uniform2Float extends UniformSetter {
+	public static final class Uniform2Float extends AbstractUniformSetter {
 		
 		private final float x, y;
 		
@@ -501,7 +509,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static final class Uniform2Floats extends UniformSetter {
+	public static final class Uniform2Floats extends AbstractUniformSetter {
 		
 		private final int count;
 		
@@ -531,7 +539,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static final class Uniform2FloatBuffer extends UniformSetter {
+	public static final class Uniform2FloatBuffer extends AbstractUniformSetter {
 		
 		private final int count;
 		
@@ -558,7 +566,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static final class Uniform2Int extends UniformSetter {
+	public static final class Uniform2Int extends AbstractUniformSetter {
 		
 		private final int x, y;
 		
@@ -583,7 +591,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static final class Uniform2Ints extends UniformSetter {
+	public static final class Uniform2Ints extends AbstractUniformSetter {
 		
 		private final int count;
 		
@@ -613,7 +621,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static final class Uniform2IntBuffer extends UniformSetter {
+	public static final class Uniform2IntBuffer extends AbstractUniformSetter {
 		
 		private final int count;
 		
@@ -640,7 +648,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static final class Uniform3Float extends UniformSetter {
+	public static final class Uniform3Float extends AbstractUniformSetter {
 		
 		private final float x, y, z;
 		
@@ -666,7 +674,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static final class Uniform3Floats extends UniformSetter {
+	public static final class Uniform3Floats extends AbstractUniformSetter {
 		
 		private final int count;
 		
@@ -696,7 +704,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static final class Uniform3FloatBuffer extends UniformSetter {
+	public static final class Uniform3FloatBuffer extends AbstractUniformSetter {
 		
 		private final int count;
 		
@@ -723,7 +731,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static final class Uniform3Int extends UniformSetter {
+	public static final class Uniform3Int extends AbstractUniformSetter {
 		
 		private final int x, y, z;
 		
@@ -749,7 +757,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static final class Uniform3Ints extends UniformSetter {
+	public static final class Uniform3Ints extends AbstractUniformSetter {
 		
 		private final int count;
 		
@@ -779,7 +787,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static final class Uniform3IntBuffer extends UniformSetter {
+	public static final class Uniform3IntBuffer extends AbstractUniformSetter {
 		
 		private final int count;
 		
@@ -806,7 +814,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static final class Uniform4Float extends UniformSetter {
+	public static final class Uniform4Float extends AbstractUniformSetter {
 		
 		private final float x, y, z, w;
 		
@@ -833,7 +841,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static final class Uniform4Floats extends UniformSetter {
+	public static final class Uniform4Floats extends AbstractUniformSetter {
 		
 		private final int count;
 		
@@ -863,7 +871,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static final class Uniform4FloatBuffer extends UniformSetter {
+	public static final class Uniform4FloatBuffer extends AbstractUniformSetter {
 		
 		private final int count;
 		
@@ -890,7 +898,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static final class Uniform4Int extends UniformSetter {
+	public static final class Uniform4Int extends AbstractUniformSetter {
 		
 		private final int x, y, z, w;
 		
@@ -917,7 +925,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static final class Uniform4Ints extends UniformSetter {
+	public static final class Uniform4Ints extends AbstractUniformSetter {
 		
 		private final int count;
 		
@@ -947,7 +955,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static final class Uniform4IntBuffer extends UniformSetter {
+	public static final class Uniform4IntBuffer extends AbstractUniformSetter {
 		
 		private final int count;
 		
@@ -974,7 +982,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static final class UniformMatrix2Floats extends UniformSetter {
+	public static final class UniformMatrix2Floats extends AbstractUniformSetter {
 		
 		private final int count;
 		
@@ -1007,7 +1015,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static final class UniformMatrix2FloatBuffer extends UniformSetter {
+	public static final class UniformMatrix2FloatBuffer extends AbstractUniformSetter {
 		
 		private final int count;
 		
@@ -1037,7 +1045,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static final class UniformMatrix3Floats extends UniformSetter {
+	public static final class UniformMatrix3Floats extends AbstractUniformSetter {
 		
 		private final int count;
 		
@@ -1070,7 +1078,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static final class UniformMatrix3FloatBuffer extends UniformSetter {
+	public static final class UniformMatrix3FloatBuffer extends AbstractUniformSetter {
 		
 		private final int count;
 		
@@ -1100,7 +1108,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static final class UniformMatrix4Floats extends UniformSetter {
+	public static final class UniformMatrix4Floats extends AbstractUniformSetter {
 		
 		private final int count;
 		
@@ -1133,7 +1141,7 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	/**
 	 * @author codistmonk (creation 2014-10-18)
 	 */
-	public static final class UniformMatrix4FloatBuffer extends UniformSetter {
+	public static final class UniformMatrix4FloatBuffer extends AbstractUniformSetter {
 		
 		private final int count;
 		
