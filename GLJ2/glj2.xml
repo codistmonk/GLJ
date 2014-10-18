@@ -1,8 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<project default="create_run_jar" name="Create Runnable Jar for Project GLJ">
+<project default="create_glj2_jar" name="Create Runnable Jar for Project GLJ">
     <!--ANT 1.7 is required                                        -->
-    <target name="create_run_jar">
+    <target name="create_glj2_jar">
         <jar destfile="glj2.jar" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="glj2.demos.Demo1"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <fileset file="glj_license.txt"/>
+            <fileset dir="bin"/>
+            <fileset dir="src"/>
+        </jar>
+        <jar destfile="glj2-all.jar" filesetmanifest="mergewithoutmain">
             <manifest>
                 <attribute name="Main-Class" value="glj2.demos.Demo1"/>
                 <attribute name="Class-Path" value="."/>
@@ -12,6 +21,23 @@
             <fileset dir="src"/>
             <fileset includes="lib/*-natives-*.jar" dir="."/>
             <zipfileset excludes="META-INF/*.SF" src="lib/aprog.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="lib/vecmath.jar"/>
+        	<zipfileset excludes="META-INF/*.SF" src="lib/gluegen-rt.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="lib/gluegen.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="lib/gluegen-java-src.zip"/>
+            <zipfileset excludes="META-INF/*.SF" src="lib/jogl-all.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="lib/jogl-java-src.zip"/>
+            <zipfileset excludes="META-INF/*.SF" src="lib/j3dbool.jar"/>
+        </jar>
+        <jar destfile="glj2-vecmath-jogl-j3dbool.jar" filesetmanifest="mergewithoutmain">
+            <manifest>
+                <attribute name="Main-Class" value="glj2.demos.Demo1"/>
+                <attribute name="Class-Path" value="."/>
+            </manifest>
+            <fileset file="glj_license.txt"/>
+            <fileset dir="bin"/>
+            <fileset dir="src"/>
+            <fileset includes="lib/*-natives-*.jar" dir="."/>
             <zipfileset excludes="META-INF/*.SF" src="lib/vecmath.jar"/>
         	<zipfileset excludes="META-INF/*.SF" src="lib/gluegen-rt.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="lib/gluegen.jar"/>
