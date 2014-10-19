@@ -24,9 +24,7 @@
             <zipfileset excludes="META-INF/*.SF" src="lib/vecmath.jar"/>
         	<zipfileset excludes="META-INF/*.SF" src="lib/gluegen-rt.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="lib/gluegen.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="lib/gluegen-java-src.zip"/>
             <zipfileset excludes="META-INF/*.SF" src="lib/jogl-all.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="lib/jogl-java-src.zip"/>
             <zipfileset excludes="META-INF/*.SF" src="lib/j3dbool.jar"/>
         </jar>
         <jar destfile="glj2-vecmath-jogl-j3dbool.jar" filesetmanifest="mergewithoutmain">
@@ -41,9 +39,7 @@
             <zipfileset excludes="META-INF/*.SF" src="lib/vecmath.jar"/>
         	<zipfileset excludes="META-INF/*.SF" src="lib/gluegen-rt.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="lib/gluegen.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="lib/gluegen-java-src.zip"/>
             <zipfileset excludes="META-INF/*.SF" src="lib/jogl-all.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="lib/jogl-java-src.zip"/>
             <zipfileset excludes="META-INF/*.SF" src="lib/j3dbool.jar"/>
         </jar>
     </target>
