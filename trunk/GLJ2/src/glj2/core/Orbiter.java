@@ -32,7 +32,7 @@ public final class Orbiter extends MouseHandler {
 	private float clippingDepth;
 	
 	public Orbiter(final Scene scene) {
-		super(null);
+		super(scene.getUpdatedNeeded());
 		this.scene = scene;
 		this.target = new Point3f();
 		this.distance = 4F;
@@ -132,6 +132,8 @@ public final class Orbiter extends MouseHandler {
 				this.target.y + (float) (distance * sin(this.verticalRadians)),
 				this.target.z + (float) (distance * cos(this.verticalRadians) * cos(this.horizontalRadians))
 				), this.target, GLJTools.UNIT_Y);
+		
+		this.getUpdateNeeded().set(true);
 	}
 	
 	/**
