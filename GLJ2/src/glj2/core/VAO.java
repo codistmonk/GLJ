@@ -48,16 +48,24 @@ public final class VAO implements Serializable {
 		return this;
 	}
 	
+	public final VAO addAttribute1f(final VBO vbo) {
+		return this.addAttributeNf(vbo, 1);
+	}
+	
 	public final VAO addAttribute2f(final VBO vbo) {
-		return this.addAttribute(vbo, 2, GL.GL_FLOAT, false, 0, 0L);
+		return this.addAttributeNf(vbo, 2);
 	}
 	
 	public final VAO addAttribute3f(final VBO vbo) {
-		return this.addAttribute(vbo, 3, GL.GL_FLOAT, false, 0, 0L);
+		return this.addAttributeNf(vbo, 3);
 	}
 	
 	public final VAO addAttribute4f(final VBO vbo) {
-		return this.addAttribute(vbo, 4, GL.GL_FLOAT, false, 0, 0L);
+		return this.addAttributeNf(vbo, 4);
+	}
+	
+	public final VAO addAttributeNf(final VBO vbo, final int n) {
+		return this.addAttribute(vbo, n, GL.GL_FLOAT, false, 0, 0L);
 	}
 	
 	public final VAO addIndices(final VBO vbo) {
