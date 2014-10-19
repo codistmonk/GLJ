@@ -6,6 +6,8 @@ import java.nio.IntBuffer;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL3;
 
+import net.sourceforge.aprog.tools.Tools;
+
 import com.jogamp.common.nio.Buffers;
 
 /**
@@ -58,13 +60,29 @@ public final class VAO implements Serializable {
 		return this.addAttribute(vbo, 4, GL.GL_FLOAT, false, 0, 0L);
 	}
 	
+	public final VAO addIndices(final VBO vbo) {
+		this.checkBound();
+		
+		if (vbo.getTarget() != GL.GL_ELEMENT_ARRAY_BUFFER) {
+			Tools.debugError("Warning: Unexpected target:", vbo.getTarget(), "(expected:", GL.GL_ELEMENT_ARRAY_BUFFER + ")");
+		}
+		
+		vbo.bind();
+		
+		return this;
+	}
+	
 	public final VAO addAttribute(final VBO vbo,
 			final int attributeComponentCount, final int attributeComponentType,
 			final boolean normalizeFixedPoint, final int stride, final long pointerBufferOffset) {
 		this.checkBound();
 		
-		this.gl.glEnableVertexAttribArray(this.attributeCount);
+		if (vbo.getTarget() != GL.GL_ARRAY_BUFFER) {
+			Tools.debugError("Warning: Unexpected target:", vbo.getTarget(), "(expected:", GL.GL_ARRAY_BUFFER + ")");
+		}
+		
 		vbo.bind();
+		this.gl.glEnableVertexAttribArray(this.attributeCount);
 		this.gl.glVertexAttribPointer(this.attributeCount,
 				attributeComponentCount, attributeComponentType, normalizeFixedPoint, stride, pointerBufferOffset);
 		

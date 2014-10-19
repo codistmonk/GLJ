@@ -38,8 +38,12 @@ public final class VBO implements Serializable {
 		gl.glBufferData(target, data.capacity() * getDatumSize(data), data, usage);
 	}
 	
+	public final int getTarget() {
+		return this.target;
+	}
+	
 	public final VBO bind() {
-		this.gl.glBindBuffer(this.target, this.vbo.get(0));
+		this.gl.glBindBuffer(this.getTarget(), this.vbo.get(0));
 		
 		return this;
 	}
@@ -56,7 +60,11 @@ public final class VBO implements Serializable {
 			throw new IllegalArgumentException("Invalid buffer type: " + bufferClassName);
 		}
 		
-		final String datumClassName = matcher.group(2);
+		String datumClassName = matcher.group(2);
+		
+		if ("Int".equals(datumClassName)) {
+			datumClassName = "Integer";
+		}
 		
 		try {
 			return Class.forName("java.lang." + datumClassName).getField("BYTES").getInt(null);
