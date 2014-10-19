@@ -51,9 +51,10 @@ public final class Quad implements Geometry {
 		this.colors.put(new float[] { r, g, b, a });
 		
 		if (!this.locations.hasRemaining()) {
-			this.vao.bind()
+			this.vao.bind(true)
 					.addAttribute3f(this.vbos[0] = new VBO(this.gl, this.locations.position(0), GL.GL_STATIC_DRAW))
-					.addAttribute4f(this.vbos[1] = new VBO(this.gl, this.colors.position(0), GL.GL_STATIC_DRAW));
+					.addAttribute4f(this.vbos[1] = new VBO(this.gl, this.colors.position(0), GL.GL_STATIC_DRAW))
+					.bind(false);
 		}
 		
 		return this;
@@ -61,8 +62,9 @@ public final class Quad implements Geometry {
 	
 	@Override
 	public final void render() {
-		this.vao.bind();
+		this.vao.bind(true);
 		this.gl.glDrawArrays(GL.GL_TRIANGLE_FAN, 0, 4);
+		this.vao.bind(false);
 	}
 	
 	@Override

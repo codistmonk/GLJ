@@ -38,10 +38,10 @@ public final class VAO implements Serializable {
 		}
 	}
 	
-	public final VAO bind() {
-		this.gl.glBindVertexArray(this.vao.get(0));
+	public final VAO bind(final boolean bind) {
+		this.gl.glBindVertexArray(bind ? this.vao.get(0) : 0);
 		
-		this.bound = true;
+		this.bound = bind;
 		
 		return this;
 	}
