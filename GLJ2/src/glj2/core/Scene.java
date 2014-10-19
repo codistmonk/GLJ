@@ -1,8 +1,11 @@
 package glj2.core;
 
+import com.jogamp.opengl.util.Animator;
+
 import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.media.opengl.DebugGL4;
 import javax.media.opengl.GL;
@@ -10,7 +13,7 @@ import javax.media.opengl.GL4;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 
-import com.jogamp.opengl.util.Animator;
+import net.sourceforge.aprog.tools.Tools;
 
 /**
  * @author codistmonk (creation 2014-08-18)
@@ -19,6 +22,8 @@ public abstract class Scene implements GLEventListener, Serializable {
 	
 	private Camera camera;
 	
+	private final AtomicBoolean updatedNeeded = new AtomicBoolean();
+	
 	private final MatrixConverter projectionView = new MatrixConverter();
 	
 	private final Map<String, ExtendedShaderProgram> shaderPrograms = new LinkedHashMap<>();
@@ -26,6 +31,12 @@ public abstract class Scene implements GLEventListener, Serializable {
 	private final Map<String, Geometry> geometries = new LinkedHashMap<>();
 	
 	private GL gl;
+	
+	private int renderBuffersOutdated;
+	
+	public final AtomicBoolean getUpdatedNeeded() {
+		return this.updatedNeeded;
+	}
 	
 	public final Camera getCamera() {
 		return this.camera;
@@ -109,9 +120,21 @@ public abstract class Scene implements GLEventListener, Serializable {
 	
 	@Override
 	public final void display(final GLAutoDrawable drawable) {
-		this.beforeRender();
-		this.render();
-		this.afterRender();
+		if (this.getUpdatedNeeded().getAndSet(false)) {
+			this.renderBuffersOutdated = 3;
+		}
+		
+		if (0 < --this.renderBuffersOutdated) {
+			this.beforeRender();
+			this.render();
+			this.afterRender();
+		} else {
+			try {
+				Thread.sleep(20L);
+			} catch (final InterruptedException exception) {
+				throw Tools.unchecked(exception);
+			}
+		}
 	}
 	
 	public final MatrixConverter getProjectionView() {
