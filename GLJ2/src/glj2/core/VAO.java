@@ -30,6 +30,11 @@ public final class VAO implements Serializable {
 		gl.glGenVertexArrays(1, this.vao);
 	}
 	
+	@SuppressWarnings("unchecked")
+	public final <T extends GL3> T getGL() {
+		return (T) this.gl;
+	}
+	
 	public final boolean isBound() {
 		return this.bound;
 	}

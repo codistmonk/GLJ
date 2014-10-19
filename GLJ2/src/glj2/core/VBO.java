@@ -38,6 +38,11 @@ public final class VBO implements Serializable {
 		gl.glBufferData(target, data.capacity() * getDatumSize(data), data, usage);
 	}
 	
+	@SuppressWarnings("unchecked")
+	public final <T extends GL2ES2> T getGL() {
+		return (T) this.gl;
+	}
+	
 	public final int getTarget() {
 		return this.target;
 	}
