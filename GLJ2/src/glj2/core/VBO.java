@@ -22,17 +22,24 @@ public final class VBO implements Serializable {
 	
 	private final IntBuffer vbo;
 	
+	private final int target;
+	
 	public VBO(final GL2ES2 gl, final Buffer data, final int usage) {
+		this(gl, GL.GL_ARRAY_BUFFER, data, usage);
+	}
+	
+	public VBO(final GL2ES2 gl, final int target, final Buffer data, final int usage) {
 		this.gl = gl;
 		this.vbo = Buffers.newDirectIntBuffer(1);
+		this.target = target;
 		
 		gl.glGenBuffers(1, this.vbo);
 		this.bind();
-		gl.glBufferData(GL.GL_ARRAY_BUFFER, data.capacity() * getDatumSize(data), data, usage);
+		gl.glBufferData(target, data.capacity() * getDatumSize(data), data, usage);
 	}
 	
 	public final VBO bind() {
-		this.gl.glBindBuffer(GL.GL_ARRAY_BUFFER, this.vbo.get(0));
+		this.gl.glBindBuffer(this.target, this.vbo.get(0));
 		
 		return this;
 	}
