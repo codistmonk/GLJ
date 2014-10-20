@@ -2,6 +2,9 @@ package glj2.core;
 
 import com.jogamp.common.util.cache.TempJarCache;
 
+import glj2.core.Camera.ProjectionType;
+
+import java.awt.Dimension;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -23,7 +26,6 @@ import javax.vecmath.Tuple3f;
 import javax.vecmath.Vector3f;
 
 import jogamp.common.os.PlatformPropsImpl;
-
 import net.sourceforge.aprog.tools.IllegalInstantiationException;
 import net.sourceforge.aprog.tools.Tools;
 
@@ -55,6 +57,14 @@ public final class GLJTools {
 	 * {@value}.
 	 */
 	public static final int INT_BYTE_COUNT = Integer.SIZE / 8;
+	
+	public static final void setProjectionWithCanvasAspectRatio(
+			final Camera camera, final ProjectionType projectionType) {
+		final Dimension canvasSize = camera.getCanvasSize();
+		final float aspectRatio = (float) canvasSize.width / canvasSize.height;
+		
+		camera.setProjectionType(projectionType).setProjection(-aspectRatio, aspectRatio, -1F, 1F);
+	}
 	
 	public static final Matrix4f newIdentity() {
 		final Matrix4f result = new Matrix4f();
