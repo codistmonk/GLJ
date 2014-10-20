@@ -7,6 +7,5 @@
 	<classpathentry kind="lib" path="lib/aprog.jar"/>
 	<classpathentry kind="lib" path="lib/gluegen.jar"/>
 	<classpathentry kind="lib" path="lib/vecmath.jar"/>
-	<classpathentry kind="lib" path="lib/j3dbool.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

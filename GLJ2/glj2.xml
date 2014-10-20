@@ -25,9 +25,8 @@
         	<zipfileset excludes="META-INF/*.SF" src="lib/gluegen-rt.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="lib/gluegen.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="lib/jogl-all.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="lib/j3dbool.jar"/>
         </jar>
-        <jar destfile="glj2-vecmath-jogl-j3dbool.jar" filesetmanifest="mergewithoutmain">
+        <jar destfile="glj2-vecmath-jogl.jar" filesetmanifest="mergewithoutmain">
             <manifest>
                 <attribute name="Main-Class" value="glj2.demos.Demo1"/>
                 <attribute name="Class-Path" value="."/>
@@ -40,7 +39,6 @@
         	<zipfileset excludes="META-INF/*.SF" src="lib/gluegen-rt.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="lib/gluegen.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="lib/jogl-all.jar"/>
-            <zipfileset excludes="META-INF/*.SF" src="lib/j3dbool.jar"/>
         </jar>
     </target>
 </project>
