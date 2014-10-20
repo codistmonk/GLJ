@@ -5,6 +5,7 @@ import static java.lang.Math.cos;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.sin;
+import static java.lang.Math.tan;
 
 import java.awt.Point;
 import java.awt.event.MouseEvent;
@@ -44,7 +45,7 @@ public final class Orbiter extends MouseHandler {
 	}
 	
 	public final void setDistance(final float distance) {
-		this.distance = Math.max(this.clippingDepth * 0.5001F, distance);
+		this.distance = Math.max(this.clippingDepth * 0.51F, distance);
 	}
 	
 	public final double getHorizontalRadians() {
@@ -112,20 +113,22 @@ public final class Orbiter extends MouseHandler {
 	public final void updateSceneCamera() {
 		final Camera camera = this.scene.getCamera();
 		final float distance = this.getDistance();
+		final float[] clipping = camera.getClipping();
+		
+		clipping[4] = distance - this.clippingDepth / 2F;
+		clipping[5] = clipping[4] + this.clippingDepth;
 		
 		{
-			final float[] clipping = camera.getClipping();
-			final float oldNear = clipping[4];
-			final float near = distance - this.clippingDepth / 2F;
+			final float oldTop = clipping[3];
+			final double viewVerticalRadians = PI / 6.0; // TODO allow angle customization
+			final float newTop = (float) (clipping[4] * tan(viewVerticalRadians));
 			
-			for (int i = 0; i <= 4; ++i) {
-				clipping[i] *= near / oldNear;
+			for (int i = 0; i <= 3; ++i) {
+				clipping[i] *= newTop / oldTop;
 			}
-			
-			clipping[5] = near + this.clippingDepth;
-			
-			camera.setProjection();
 		}
+		
+		camera.setProjection();
 		
 		camera.setView(new Point3f(
 				this.target.x + (float) (distance * cos(this.verticalRadians) * sin(this.horizontalRadians)),

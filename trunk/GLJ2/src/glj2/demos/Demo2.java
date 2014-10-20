@@ -3,7 +3,7 @@ package glj2.demos;
 import static glj2.core.ExtendedShaderProgram.fragmentShader;
 import static glj2.core.Shaders.*;
 
-import java.awt.Dimension;
+import com.jogamp.opengl.util.glsl.ShaderCode;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
@@ -11,11 +11,10 @@ import javax.media.opengl.GLAutoDrawable;
 import javax.vecmath.Matrix4f;
 import javax.vecmath.Vector3f;
 
-import com.jogamp.opengl.util.glsl.ShaderCode;
-
 import glj2.core.Camera;
 import glj2.core.ExtendedShaderProgram;
 import glj2.core.ExtendedShaderProgram.UniformSetter;
+import glj2.core.GLJTools;
 import glj2.core.GLSwingContext;
 import glj2.core.Geometry;
 import glj2.core.MatrixConverter;
@@ -133,12 +132,7 @@ public final class Demo2 {
 			
 			@Override
 			protected final void reshaped() {
-				final Camera camera = this.getCamera();
-				
-				final Dimension canvasSize = camera.getCanvasSize();
-				final float aspectRatio = (float) canvasSize.width / canvasSize.height;
-				
-				camera.setProjectionType(ProjectionType.PERSPECTIVE).setProjection(-aspectRatio, aspectRatio, -1F, 1F);
+				GLJTools.setProjectionWithCanvasAspectRatio(this.getCamera(), ProjectionType.PERSPECTIVE);
 				
 				this.orbiter.updateSceneCamera();
 			}

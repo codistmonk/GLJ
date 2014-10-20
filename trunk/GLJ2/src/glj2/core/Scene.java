@@ -121,10 +121,11 @@ public abstract class Scene implements GLEventListener, Serializable {
 	@Override
 	public final void display(final GLAutoDrawable drawable) {
 		if (this.getUpdatedNeeded().getAndSet(false)) {
-			this.renderBuffersOutdated = 3;
+			this.renderBuffersOutdated = 2;
 		}
 		
-		if (0 < --this.renderBuffersOutdated) {
+		if (0 < this.renderBuffersOutdated) {
+			--this.renderBuffersOutdated;
 			this.beforeRender();
 			this.render();
 			this.afterRender();
