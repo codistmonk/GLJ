@@ -11,6 +11,8 @@ import java.util.regex.Pattern;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
 
+import net.sourceforge.aprog.tools.Tools;
+
 import com.jogamp.common.nio.Buffers;
 
 /**
@@ -53,8 +55,13 @@ public final class VBO implements Serializable {
 		return this;
 	}
 	
-	public final void destroy() {
-		this.gl.glDeleteBuffers(1, this.vbo);
+	@Override
+	protected final void finalize() throws Throwable {
+		try {
+			this.gl.glDeleteBuffers(1, this.vbo);
+		} finally {
+			super.finalize();
+		}
 	}
 	
 	public static final int getDatumSize(final Buffer buffer) {
