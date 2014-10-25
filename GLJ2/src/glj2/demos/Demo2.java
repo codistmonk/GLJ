@@ -96,7 +96,7 @@ public final class Demo2 {
 				this.add("billboarded", new ExtendedShaderProgram(gl)
 				.attribute("vertexLocation", 0)
 				.attribute("vertexColor", 1)
-				.build(VERTEX_SHADER_3, PSEUDOSPHERE_SHADER))
+				.build(VERTEX_SHADER_UNIFORM_TRANSFORM_IN_LOCATION_COLOR, PSEUDOSPHERE_SHADER))
 						.addUniformSetters(new UniformSetter() {
 							
 							private final MatrixConverter billboardingTransform = new MatrixConverter();

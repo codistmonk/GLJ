@@ -18,14 +18,14 @@ public final class Shaders {
 		throw new IllegalInstantiationException();
 	}
 	
-	public static final ShaderCode VERTEX_SHADER_1 = vertexShader(
+	public static final ShaderCode VERTEX_SHADER_IN_LOCATION = vertexShader(
 			"#version 330\n" +
 			"in vec3 vertexLocation;\n" +
 			"void main() {\n" +
 			"	gl_Position = vec4(vertexLocation, 1.0);\n" +
 			"}\n");
 	
-	public static final ShaderCode VERTEX_SHADER_2 = vertexShader(
+	public static final ShaderCode VERTEX_SHADER_IN_LOCATION_COLOR = vertexShader(
 			"#version 330\n" +
 			"in vec3 vertexLocation;\n" +
 			"in vec4 vertexColor;\n" +
@@ -35,7 +35,7 @@ public final class Shaders {
 			"	gl_Position = vec4(vertexLocation, 1.0);\n" +
 			"}\n");
 	
-	public static final ShaderCode VERTEX_SHADER_3 = vertexShader(
+	public static final ShaderCode VERTEX_SHADER_UNIFORM_TRANSFORM_IN_LOCATION_COLOR = vertexShader(
 			"#version 330\n" +
 			"uniform mat4 transform;\n" +
 			"in vec3 vertexLocation;\n" +
@@ -46,14 +46,14 @@ public final class Shaders {
 			"	gl_Position = transform * vec4(vertexLocation, 1.0);\n" +
 			"}\n");
 	
-	public static final ShaderCode FRAGMENT_SHADER_1 = fragmentShader(
+	public static final ShaderCode FRAGMENT_SHADER_CONSTANT_COLOR = fragmentShader(
 			"#version 330\n" +
 			"out vec4 fragmentColor;\n" +
 			"void main() {\n" +
 			"	fragmentColor = vec4(0.5, 0.0, 0.5, 1.0);\n" +
 			"}\n");
 	
-	public static final ShaderCode FRAGMENT_SHADER_2 = fragmentShader(
+	public static final ShaderCode FRAGMENT_SHADER_UNIFORM_COLOR = fragmentShader(
 			"#version 330\n" +
 			"uniform vec4 objectColor;\n" +
 			"out vec4 fragmentColor;\n" +
@@ -61,7 +61,7 @@ public final class Shaders {
 			"	fragmentColor = objectColor;\n" +
 			"}\n");
 	
-	public static final ShaderCode FRAGMENT_SHADER_3 = fragmentShader(
+	public static final ShaderCode FRAGMENT_SHADER_IN_COLOR = fragmentShader(
 			"#version 330\n" +
 			"in vec4 interpolatedColor;\n" +
 			"out vec4 fragmentColor;\n" +
@@ -70,25 +70,25 @@ public final class Shaders {
 			"}\n");
 	
 	public static final ExtendedShaderProgram newProgramV1F1(final GL2ES2 gl) {
-		return new ExtendedShaderProgram(gl).build(VERTEX_SHADER_1, FRAGMENT_SHADER_1);
+		return new ExtendedShaderProgram(gl).build(VERTEX_SHADER_IN_LOCATION, FRAGMENT_SHADER_CONSTANT_COLOR);
 	}
 	
 	public static final ExtendedShaderProgram newProgramV1F2(final GL2ES2 gl) {
-		return new ExtendedShaderProgram(gl).build(VERTEX_SHADER_1, FRAGMENT_SHADER_2);
+		return new ExtendedShaderProgram(gl).build(VERTEX_SHADER_IN_LOCATION, FRAGMENT_SHADER_UNIFORM_COLOR);
 	}
 	
 	public static final ExtendedShaderProgram newProgramV2F3(final GL2ES2 gl) {
 		return new ExtendedShaderProgram(gl)
 			.attribute("vertexLocation", 0)
 			.attribute("vertexColor", 1)
-			.build(VERTEX_SHADER_2, FRAGMENT_SHADER_3);
+			.build(VERTEX_SHADER_IN_LOCATION_COLOR, FRAGMENT_SHADER_IN_COLOR);
 	}
 	
 	public static final ExtendedShaderProgram newProgramV3F3(final GL2ES2 gl) {
 		return new ExtendedShaderProgram(gl)
 			.attribute("vertexLocation", 0)
 			.attribute("vertexColor", 1)
-			.build(VERTEX_SHADER_3, FRAGMENT_SHADER_3);
+			.build(VERTEX_SHADER_UNIFORM_TRANSFORM_IN_LOCATION_COLOR, FRAGMENT_SHADER_IN_COLOR);
 	}
 	
 }
