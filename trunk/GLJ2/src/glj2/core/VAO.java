@@ -1,14 +1,16 @@
 package glj2.core;
 
+import com.jogamp.common.nio.Buffers;
+
 import java.io.Serializable;
 import java.nio.IntBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL3;
 
 import net.sourceforge.aprog.tools.Tools;
-
-import com.jogamp.common.nio.Buffers;
 
 /**
  * @author codistmonk (creation 2014-08-17)
@@ -23,9 +25,12 @@ public final class VAO implements Serializable {
 	
 	private int attributeCount;
 	
+	private final List<VBO> vbos;
+	
 	public VAO(final GL3 gl) {
 		this.gl = gl;
 		this.vao = Buffers.newDirectIntBuffer(1);
+		this.vbos = new ArrayList<>();
 		
 		gl.glGenVertexArrays(1, this.vao);
 	}
@@ -33,6 +38,10 @@ public final class VAO implements Serializable {
 	@SuppressWarnings("unchecked")
 	public final <T extends GL3> T getGL() {
 		return (T) this.gl;
+	}
+	
+	public final List<VBO> getVbos() {
+		return this.vbos;
 	}
 	
 	public final boolean isBound() {
@@ -82,6 +91,8 @@ public final class VAO implements Serializable {
 		
 		vbo.bind();
 		
+		this.getVbos().add(vbo);
+		
 		return this;
 	}
 	
@@ -101,11 +112,18 @@ public final class VAO implements Serializable {
 		
 		++this.attributeCount;
 		
+		this.getVbos().add(vbo);
+		
 		return this;
 	}
 	
-	public final void destroy() {
-		this.gl.glDeleteVertexArrays(1, this.vao);
+	@Override
+	protected final void finalize() throws Throwable {
+		try {
+			this.gl.glDeleteVertexArrays(1, this.vao);
+		} finally {
+			super.finalize();
+		}
 	}
 	
 	/**

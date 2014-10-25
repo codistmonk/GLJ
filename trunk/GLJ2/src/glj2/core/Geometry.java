@@ -11,8 +11,8 @@ public abstract interface Geometry extends Serializable {
 	
 	public abstract Matrix4f getPosition();
 	
-	public abstract void render();
+	public abstract VAO getVAO();
 	
-	public abstract void destroy();
+	public abstract void render();
 	
 }

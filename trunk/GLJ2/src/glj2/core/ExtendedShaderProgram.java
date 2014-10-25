@@ -77,10 +77,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		this.useProgram(false);
 	}
 	
-	public final synchronized void destroy() {
-		super.destroy(this.gl);
-	}
-	
 	public final synchronized void release() {
 		super.release(this.gl);
 	}
@@ -278,6 +274,15 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	public final void checkInUse() {
 		if (!this.inUse()) {
 			throw new IllegalStateException();
+		}
+	}
+	
+	@Override
+	protected final void finalize() throws Throwable {
+		try {
+			super.destroy(this.gl);
+		} finally {
+			super.finalize();
 		}
 	}
 	
