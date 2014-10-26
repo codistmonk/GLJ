@@ -68,7 +68,7 @@ public final class Orbiter extends MouseHandler {
 		return this.target;
 	}
 	
-	public final float getFieldDepth() {
+	public final float getClippingDepth() {
 		return this.clippingDepth;
 	}
 	
