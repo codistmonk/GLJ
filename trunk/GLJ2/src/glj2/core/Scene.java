@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.media.opengl.DebugGL4;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL4;
+import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 
@@ -95,7 +96,11 @@ public abstract class Scene implements GLEventListener, Serializable {
 	
 	@Override
 	public final void dispose(final GLAutoDrawable drawable) {
-		drawable.getAnimator().stop();
+		final GLAnimatorControl animator = drawable.getAnimator();
+		
+		if (animator != null) {
+			animator.stop();
+		}
 		
 		this.getShaderPrograms().clear();
 		this.getGeometries().clear();
