@@ -2,6 +2,8 @@ package glj2.core;
 
 import static net.sourceforge.aprog.tools.Tools.unchecked;
 
+import com.jogamp.common.nio.Buffers;
+
 import java.io.Serializable;
 import java.nio.Buffer;
 import java.nio.IntBuffer;
@@ -10,10 +12,6 @@ import java.util.regex.Pattern;
 
 import javax.media.opengl.GL;
 import javax.media.opengl.GL2ES2;
-
-import net.sourceforge.aprog.tools.Tools;
-
-import com.jogamp.common.nio.Buffers;
 
 /**
  * @author codistmonk (creation 2014-08-17)
