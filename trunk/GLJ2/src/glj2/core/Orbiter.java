@@ -45,7 +45,7 @@ public final class Orbiter extends MouseHandler {
 	}
 	
 	public final void setDistance(final float distance) {
-		this.distance = Math.max(this.clippingDepth * 0.51F, distance);
+		this.distance = Math.max(0F, distance);
 	}
 	
 	public final double getHorizontalRadians() {
@@ -115,7 +115,7 @@ public final class Orbiter extends MouseHandler {
 		final float distance = this.getDistance();
 		final float[] clipping = camera.getClipping();
 		
-		clipping[4] = distance - this.clippingDepth / 2F;
+		clipping[4] = Math.max(0.01F, distance - this.clippingDepth / 2F);
 		clipping[5] = clipping[4] + this.clippingDepth;
 		
 		{
