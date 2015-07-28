@@ -13,6 +13,8 @@ import java.awt.event.MouseWheelEvent;
 
 import javax.vecmath.Point3f;
 
+import multij.swing.MouseHandler;
+
 /**
  * @author codistmonk (creation 2014-10-17)
  */
