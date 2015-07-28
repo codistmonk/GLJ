@@ -14,7 +14,7 @@ import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 
-import net.sourceforge.aprog.tools.Tools;
+import multij.tools.Tools;
 
 /**
  * @author codistmonk (creation 2014-08-18)

@@ -7,7 +7,7 @@ import com.jogamp.opengl.util.glsl.ShaderCode;
 
 import javax.media.opengl.GL2ES2;
 
-import net.sourceforge.aprog.tools.IllegalInstantiationException;
+import multij.tools.IllegalInstantiationException;
 
 /**
  * @author codistmonk (creation 2014-08-18)

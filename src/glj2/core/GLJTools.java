@@ -26,8 +26,8 @@ import javax.vecmath.Tuple3f;
 import javax.vecmath.Vector3f;
 
 import jogamp.common.os.PlatformPropsImpl;
-import net.sourceforge.aprog.tools.IllegalInstantiationException;
-import net.sourceforge.aprog.tools.Tools;
+import multij.tools.IllegalInstantiationException;
+import multij.tools.Tools;
 
 /**
  * @author codistmonk (creation 2013-01-12)

@@ -10,7 +10,7 @@ import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
-import net.sourceforge.aprog.swing.SwingTools;
+import multij.swing.SwingTools;
 
 /**
  * @author codistmonk (creation 2014-10-17)

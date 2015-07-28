@@ -2,7 +2,7 @@ package glj2.demos;
 
 import java.io.Serializable;
 
-import net.sourceforge.aprog.tools.NanoTicToc;
+import multij.tools.NanoTicToc;
 
 /**
  * @author codistmonk (creation 2014-08-17)

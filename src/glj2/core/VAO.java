@@ -10,7 +10,7 @@ import java.util.List;
 import javax.media.opengl.GL;
 import javax.media.opengl.GL3;
 
-import net.sourceforge.aprog.tools.Tools;
+import multij.tools.Tools;
 
 /**
  * @author codistmonk (creation 2014-08-17)

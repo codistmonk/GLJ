@@ -24,8 +24,8 @@ import glj2.core.Shaders;
 import glj2.core.Camera.ProjectionType;
 import glj2.core.ExtendedShaderProgram.UniformMatrix4FloatBuffer;
 
-import net.sourceforge.aprog.swing.SwingTools;
-import net.sourceforge.aprog.tools.IllegalInstantiationException;
+import multij.swing.SwingTools;
+import multij.tools.IllegalInstantiationException;
 
 /**
  * @author codistmonk (creation 2014-10-18)

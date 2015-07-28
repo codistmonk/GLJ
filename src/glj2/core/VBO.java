@@ -1,6 +1,6 @@
 package glj2.core;
 
-import static net.sourceforge.aprog.tools.Tools.unchecked;
+import static multij.tools.Tools.unchecked;
 
 import com.jogamp.common.nio.Buffers;
 
