@@ -26,12 +26,25 @@ public final class Triangle implements Geometry {
 	
 	private final VAO vao;
 	
+	private int drawingMode;
+	
 	public Triangle(final GL3 gl) {
 		this.position = GLJTools.newIdentity();
 		final int vertexCount = 3;
 		this.locations = Buffers.newDirectFloatBuffer(vertexCount * 3);
 		this.colors = Buffers.newDirectFloatBuffer(vertexCount * 4);
 		this.vao = new VAO(gl);
+		this.drawingMode = GL.GL_TRIANGLES;
+	}
+	
+	public final int getDrawingMode() {
+		return this.drawingMode;
+	}
+	
+	public final Triangle setDrawingMode(final int drawingMode) {
+		this.drawingMode = drawingMode;
+		
+		return this;
 	}
 	
 	@Override
@@ -61,7 +74,7 @@ public final class Triangle implements Geometry {
 		final VAO vao = this.getVAO();
 		
 		vao.bind(true);
-		vao.getGL().glDrawArrays(GL.GL_TRIANGLES, 0, 3);
+		vao.getGL().glDrawArrays(this.getDrawingMode(), 0, 3);
 		vao.bind(false);
 	}
 	

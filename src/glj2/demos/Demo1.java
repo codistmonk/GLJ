@@ -10,7 +10,7 @@ import glj2.core.Scene;
 import glj2.core.Camera.ProjectionType;
 
 import javax.media.opengl.GL;
-import javax.media.opengl.GL4;
+import javax.media.opengl.GL3;
 import javax.media.opengl.GLAutoDrawable;
 
 import multij.swing.SwingTools;
@@ -32,61 +32,21 @@ public final class Demo1 {
 	public static final void main(final String[] commandLineArguments) {
 		SwingTools.useSystemLookAndFeel();
 		
-		final GLSwingContext context = new GLSwingContext();
-		
-		final Scene scene = new Scene() {
-			
-			private final FrameRate frameRate = new FrameRate(1_000_000_000L);
-			
-			private final Orbiter orbiter = new Orbiter(this);
-			
-			{
-				this.orbiter.addTo(context.getCanvas());
-			}
+		new DefaultScene() {
 			
 			@Override
-			protected final void initialize(final GLAutoDrawable drawable) {
-				final GL4 gl = this.getGL();
-				final String renderer = gl.glGetString(GL.GL_RENDERER);
-				final String version = gl.glGetString(GL.GL_VERSION);
-				
-				debugPrint("GL:", gl);
-				debugPrint("Renderer:", renderer);
-				debugPrint("Version:", version);
+			protected final void setGeometry() {
+				final GL3 gl = this.getGL();
 				
 				this.add("tr 1", new Triangle(gl)
 						.addVertex(0F, 0F, +1F, 1F, 0F, 0F, 1F)
 						.addVertex(1F, 0F, +1F, 0F, 1F, 0F, 1F)
-						.addVertex(0F, 1F, +1F, 0F, 0F, 1F, 1F));
+						.addVertex(0F, 1F, +1F, 0F, 0F, 1F, 1F)
+						.setDrawingMode(GL.GL_LINE_LOOP));
 				this.add("tr 2", new Triangle(gl)
 						.addVertex(0F, 0F, -1F, 0F, 1F, 1F, 1F)
 						.addVertex(1F, 0F, -1F, 1F, 0F, 1F, 1F)
 						.addVertex(0F, 1F, -1F, 1F, 1F, 0F, 1F));
-				
-//				this.add("sp 1 1", newProgramV1F1(gl));
-//				this.add("sp 1 2", newProgramV1F2(gl));
-//				this.add("sp 2 3", newProgramV2F3(gl));
-				this.add("sp 3 3", newProgramV3F3(gl))
-					.addUniformSetters(new UniformMatrix4FloatBuffer("transform", 1, true, this.getProjectionView().getBuffer()))
-					.addGeometries(this.getGeometries().values());
-				
-				this.orbiter.setDistance(8F);
-				this.orbiter.setClippingDepth(4F);
-			}
-			
-			@Override
-			protected final void reshaped() {
-				this.getCamera().setProjectionType(ProjectionType.PERSPECTIVE).setProjection(-1F, 1F, -1F, 1F);
-				this.orbiter.updateSceneCamera();
-			}
-			
-			@Override
-			protected final void afterRender() {
-				super.afterRender();
-				
-				if (this.frameRate.ping()) {
-					context.getFrame().setTitle("" + this.frameRate.get());
-				}
 			}
 			
 			/**
@@ -94,10 +54,87 @@ public final class Demo1 {
 			 */
 			private static final long serialVersionUID = 2457973938713347874L;
 			
-		};
+		}.show();
+	}
+	
+	/**
+	 * @author codistmonk (creation 2017-08-09)
+	 */
+	public static abstract class DefaultScene extends Scene {
 		
-		context.getCanvas().addGLEventListener(scene);
-		context.show();
+		private final GLSwingContext context = new GLSwingContext();
+		
+		private final FrameRate frameRate = new FrameRate(1_000_000_000L);
+		
+		private final Orbiter orbiter = new Orbiter(this).addTo(this.getContext().getCanvas());
+		
+		public final GLSwingContext getContext() {
+			return this.context;
+		}
+		
+		public final FrameRate getFrameRate() {
+			return this.frameRate;
+		}
+		
+		public final Orbiter getOrbiter() {
+			return this.orbiter;
+		}
+		
+		@Override
+		protected void initialize(final GLAutoDrawable drawable) {
+			final GL3 gl = this.getGL();
+			final String renderer = gl.glGetString(GL.GL_RENDERER);
+			final String version = gl.glGetString(GL.GL_VERSION);
+			
+			debugPrint("GL:", gl);
+			debugPrint("Renderer:", renderer);
+			debugPrint("Version:", version);
+			
+			this.setGeometry();
+			this.setShaders();
+			this.setOrbiter();
+		}
+		
+		protected void setGeometry() {
+			// NOP
+		}
+		
+		protected void setShaders() {
+//			this.add("sp 1 1", newProgramV1F1(gl));
+//			this.add("sp 1 2", newProgramV1F2(gl));
+//			this.add("sp 2 3", newProgramV2F3(gl));
+			this.add("sp 3 3", newProgramV3F3(this.getGL()))
+			.addUniformSetters(new UniformMatrix4FloatBuffer("transform", 1, true, this.getProjectionView().getBuffer()))
+			.addGeometries(this.getGeometries().values());
+		}
+		
+		protected void setOrbiter() {
+			this.getOrbiter().setDistance(8F);
+			this.getOrbiter().setClippingDepth(4F);
+		}
+		
+		@Override
+		protected final void reshaped() {
+			this.getCamera().setProjectionType(ProjectionType.PERSPECTIVE).setProjection(-1F, 1F, -1F, 1F);
+			this.getOrbiter().updateSceneCamera();
+		}
+		
+		@Override
+		protected final void afterRender() {
+			super.afterRender();
+			
+			if (this.frameRate.ping()) {
+				this.getContext().getFrame().setTitle("" + this.frameRate.get());
+			}
+		}
+		
+		public final void show() {
+			this.getContext().getCanvas().addGLEventListener(this);
+			this.getContext().show();
+		}
+		
+		private static final long serialVersionUID = 6112962024541718530L;
+		
 	}
 	
 }

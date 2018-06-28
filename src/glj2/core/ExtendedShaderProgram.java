@@ -54,6 +54,10 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		return this;
 	}
 	
+	public final synchronized void clearGeometries() {
+		this.geometries.clear();
+	}
+	
 	public final synchronized ExtendedShaderProgram addGeometries(final Geometry... geometries) {
 		return this.addGeometries(Arrays.asList(geometries));
 	}
@@ -66,6 +70,10 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 		this.locations.put(name, location);
 		
 		return this;
+	}
+	
+	public final synchronized ExtendedShaderProgram attribute(final String name) {
+		return this.attribute(name, this.locations.size());
 	}
 	
 	public final synchronized void run() {

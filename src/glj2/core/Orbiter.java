@@ -14,6 +14,7 @@ import java.awt.event.MouseWheelEvent;
 import javax.vecmath.Point3f;
 
 import multij.swing.MouseHandler;
+import multij.tools.Tools;
 
 /**
  * @author codistmonk (creation 2014-10-17)
@@ -32,14 +33,20 @@ public final class Orbiter extends MouseHandler {
 	
 	private double verticalRadians;
 	
-	private float clippingDepth;
+	private float clippingNear;
+	
+	private float clippingFar;
+	
+//	private float clippingDepth;
 	
 	public Orbiter(final Scene scene) {
 		super(scene.getUpdatedNeeded());
 		this.scene = scene;
 		this.target = new Point3f();
 		this.distance = 4F;
-		this.clippingDepth = 1F;
+//		this.clippingDepth = 1F;
+		this.clippingNear = -0.5F;
+		this.clippingFar = 0.5F;
 	}
 	
 	public final float getDistance() {
@@ -70,12 +77,32 @@ public final class Orbiter extends MouseHandler {
 		return this.target;
 	}
 	
+	public final float getClippingNear() {
+		return this.clippingNear;
+	}
+	
+	public final void setClippingNear(final float clippingNear) {
+		this.clippingNear = clippingNear;
+	}
+	
+	public final float getClippingFar() {
+		return this.clippingFar;
+	}
+	
+	public final void setClippingFar(final float clippingFar) {
+		this.clippingFar = clippingFar;
+	}
+	
 	public final float getClippingDepth() {
-		return this.clippingDepth;
+//		return this.clippingDepth;
+		return this.getClippingFar() - this.getClippingNear();
 	}
 	
 	public final void setClippingDepth(final float clippingDepth) {
-		this.clippingDepth = clippingDepth;
+//		this.clippingDepth = clippingDepth;
+		this.setClippingNear(-clippingDepth / 2F);
+		this.setClippingFar(clippingDepth / 2F);
+		Tools.debugPrint(clippingDepth);
 	}
 	
 	@Override
@@ -103,10 +130,12 @@ public final class Orbiter extends MouseHandler {
 	
 	@Override
 	public final void mouseWheelMoved(final MouseWheelEvent event) {
-		if (event.getWheelRotation() < 0) {
-			this.setDistance(this.getDistance() * 0.8F);
-		} else {
-			this.setDistance(this.getDistance() * 1.2F);
+		if (!event.isControlDown() && !event.isShiftDown() && !event.isAltDown() && !event.isAltGraphDown() && !event.isMetaDown()) {
+			if (event.getWheelRotation() < 0) {
+				this.setDistance(this.getDistance() * 0.8F);
+			} else {
+				this.setDistance(this.getDistance() * 1.2F);
+			}
 		}
 		
 		this.updateSceneCamera();
@@ -117,8 +146,10 @@ public final class Orbiter extends MouseHandler {
 		final float distance = this.getDistance();
 		final float[] clipping = camera.getClipping();
 		
-		clipping[4] = Math.max(0.01F, distance - this.clippingDepth / 2F);
-		clipping[5] = clipping[4] + this.clippingDepth;
+//		clipping[4] = Math.max(0.01F, distance - this.clippingDepth / 2F);
+//		clipping[5] = clipping[4] + this.clippingDepth;
+		clipping[4] = Math.max(0.01F, distance + this.getClippingNear());
+		clipping[5] = clipping[4] + this.getClippingDepth();
 		
 		{
 			final float oldTop = clipping[3];
