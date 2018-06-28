@@ -2,6 +2,7 @@ package glj2.demos;
 
 import static glj2.core.ExtendedShaderProgram.fragmentShader;
 import static glj2.core.Shaders.*;
+import static glj2.demos.Polygon.newQuad;
 
 import com.jogamp.opengl.util.glsl.ShaderCode;
 
@@ -87,7 +88,7 @@ public final class Demo2 {
 				
 				this.add("normal", Shaders.newProgramV3F3(gl))
 					.addUniformSetters(new UniformMatrix4FloatBuffer("transform", 1, true, this.getProjectionView().getBuffer()))
-					.addGeometries(this.add("quad1", new Quad(this.getGL())
+					.addGeometries(this.add("quad1", newQuad(this.getGL())
 						.addVertex(0F, 0F, 0F, 1F, 0F, 0F, 1F)
 						.addVertex(1F, 0F, 0F, 1F, 1F, 0F, 1F)
 						.addVertex(1F, 1F, 0F, 0F, 1F, 0F, 1F)
@@ -118,7 +119,7 @@ public final class Demo2 {
 							private static final long serialVersionUID = 5152623125713666882L;
 							
 						})
-						.addGeometries(this.add("quad2", new Quad(this.getGL())
+						.addGeometries(this.add("quad2", newQuad(this.getGL())
 						.addVertex(0F, 0F, 0F, 0F, 0F, 0F, 1F)
 						.addVertex(1F, 0F, 0F, 1F, 0F, 0F, 1F)
 						.addVertex(1F, 1F, 0F, 1F, 1F, 0F, 1F)

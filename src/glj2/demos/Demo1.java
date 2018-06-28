@@ -1,6 +1,7 @@
 package glj2.demos;
 
 import static glj2.core.Shaders.*;
+import static glj2.demos.Polygon.newTriangle;
 import static multij.tools.Tools.debugPrint;
 
 import glj2.core.ExtendedShaderProgram.UniformMatrix4FloatBuffer;
@@ -38,12 +39,11 @@ public final class Demo1 {
 			protected final void setGeometry() {
 				final GL3 gl = this.getGL();
 				
-				this.add("tr 1", new Triangle(gl)
+				this.add("tr 1", newTriangle(gl).setDrawingMode(GL.GL_LINE_LOOP)
 						.addVertex(0F, 0F, +1F, 1F, 0F, 0F, 1F)
 						.addVertex(1F, 0F, +1F, 0F, 1F, 0F, 1F)
-						.addVertex(0F, 1F, +1F, 0F, 0F, 1F, 1F)
-						.setDrawingMode(GL.GL_LINE_LOOP));
-				this.add("tr 2", new Triangle(gl)
+						.addVertex(0F, 1F, +1F, 0F, 0F, 1F, 1F));
+				this.add("tr 2", newTriangle(gl)
 						.addVertex(0F, 0F, -1F, 0F, 1F, 1F, 1F)
 						.addVertex(1F, 0F, -1F, 1F, 0F, 1F, 1F)
 						.addVertex(0F, 1F, -1F, 1F, 1F, 0F, 1F));
