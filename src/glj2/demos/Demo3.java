@@ -5,14 +5,9 @@ import static glj2.std.Mesh.newPoints;
 import static multij.tools.Tools.debugPrint;
 
 import glj2.core.ExtendedShaderProgram.UniformMatrix4FloatBuffer;
-import glj2.std.FrameRate;
+import glj2.demos.Demo1.DefaultScene;
 import glj2.std.Mesh;
-import glj2.std.Orbiter;
-import glj2.core.GLSwingContext;
-import glj2.core.Scene;
-import glj2.core.Camera.ProjectionType;
 
-import javax.media.opengl.GL;
 import javax.media.opengl.GL4;
 import javax.media.opengl.GLAutoDrawable;
 
@@ -35,27 +30,13 @@ public final class Demo3 {
 	public static final void main(final String[] commandLineArguments) {
 		SwingTools.useSystemLookAndFeel();
 		
-		final GLSwingContext context = new GLSwingContext();
-		
-		final Scene scene = new Scene() {
-			
-			private final FrameRate frameRate = new FrameRate(1_000_000_000L);
-			
-			private final Orbiter orbiter = new Orbiter(this);
-			
-			{
-				this.orbiter.addTo(context.getCanvas());
-			}
+		new DefaultScene() {
 			
 			@Override
 			protected final void initialize(final GLAutoDrawable drawable) {
-				final GL4 gl = this.getGL();
-				final String renderer = gl.glGetString(GL.GL_RENDERER);
-				final String version = gl.glGetString(GL.GL_VERSION);
+				super.initialize(drawable);
 				
-				debugPrint("GL:", gl);
-				debugPrint("Renderer:", renderer);
-				debugPrint("Version:", version);
+				final GL4 gl = this.getGL();
 				
 				{
 					final int n = 800;
@@ -82,35 +63,11 @@ public final class Demo3 {
 				this.add("sp 3 3", newProgramV3F3(gl))
 					.addUniformSetters(new UniformMatrix4FloatBuffer("transform", 1, true, this.getProjectionView().getBuffer()))
 					.addGeometries(this.getGeometries().values());
-				
-				this.orbiter.setDistance(8F);
-				this.orbiter.setClippingDepth(4F);
 			}
 			
-			@Override
-			protected final void reshaped() {
-				this.getCamera().setProjectionType(ProjectionType.PERSPECTIVE).setProjection(-1F, 1F, -1F, 1F);
-				this.orbiter.updateSceneCamera();
-			}
-			
-			@Override
-			protected final void afterRender() {
-				super.afterRender();
-				
-				if (this.frameRate.ping()) {
-					context.getFrame().setTitle("" + this.frameRate.get());
-				}
-			}
-			
-			/**
-			 * {@value}.
-			 */
 			private static final long serialVersionUID = 2457973938713347874L;
 			
-		};
-		
-		context.getCanvas().addGLEventListener(scene);
-		context.show();
+		}.show();
 	}
 	
 	public static final int cube(final int x) {

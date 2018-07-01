@@ -116,11 +116,17 @@ public abstract class Scene implements GLEventListener, Serializable {
 			animator.stop();
 		}
 		
+		this.dispose();
+		
 		this.picking.dispose();
 		this.getShaderPrograms().clear();
 		this.getGeometries().clear();
 		
 		Tools.gc(100L);
+	}
+	
+	protected void dispose() {
+		// NOP
 	}
 	
 	@Override

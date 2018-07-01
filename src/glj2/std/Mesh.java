@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2ES2;
 import javax.media.opengl.GL3;
 import javax.vecmath.Matrix4f;
 
@@ -31,6 +32,8 @@ public final class Mesh implements Geometry {
 	
 	private int drawingMode;
 	
+	private int texture;
+	
 	public Mesh(final GL3 gl, final int vertexCount) {
 		this.position = GLJTools.newIdentity();
 		this.buffers = new ArrayList<>();
@@ -41,6 +44,16 @@ public final class Mesh implements Geometry {
 		this.buffers.add(Buffers.newDirectFloatBuffer(vertexCount * LOCATION_COMPONENTS));
 		
 		this.setStride(vertexCount);
+	}
+	
+	public final int getTexture() {
+		return this.texture;
+	}
+	
+	public final Mesh setTexture(final int texture) {
+		this.texture = texture;
+		
+		return this;
 	}
 	
 	public final int getDrawingMode() {
@@ -172,6 +185,8 @@ public final class Mesh implements Geometry {
 		final int s = this.getStride();
 		
 		vao.bind(true);
+		gl.glActiveTexture(GL.GL_TEXTURE0 + 0);
+		gl.glBindTexture(GL.GL_TEXTURE_2D, this.getTexture());
 		for (int i = 0; i < n; i += s) {
 			gl.glDrawArrays(this.getDrawingMode(), i, s);
 		}
@@ -186,9 +201,10 @@ public final class Mesh implements Geometry {
 	private final void updateVBO(final int vboIndex, final int components, final int start, final int end, final Buffer data) {
 		final VBO vbo = this.getVAO().getVbos().get(vboIndex);
 		final int vertexStride = Float.BYTES * components;
+		final GL2ES2 gl = vbo.getGL();
 		
 		vbo.bind();
-		vbo.getGL().glBufferSubData(vbo.getTarget(), start * vertexStride, (end - start) * vertexStride, data);
+		gl.glBufferSubData(vbo.getTarget(), start * vertexStride, (end - start) * vertexStride, data);
 	}
 	
 	private static final long serialVersionUID = -8907207065164819672L;

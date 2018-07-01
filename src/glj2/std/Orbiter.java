@@ -17,8 +17,8 @@ import javax.vecmath.Point3f;
 import glj2.core.Camera;
 import glj2.core.GLJTools;
 import glj2.core.Scene;
+
 import multij.swing.MouseHandler;
-import multij.tools.Tools;
 
 /**
  * @author codistmonk (creation 2014-10-17)
@@ -105,7 +105,6 @@ public final class Orbiter extends MouseHandler {
 	public final void setClippingDepth(final float clippingDepth) {
 		this.setClippingNear(-clippingDepth / 2F);
 		this.setClippingFar(clippingDepth / 2F);
-		Tools.debugPrint(clippingDepth);
 	}
 	
 	public final Predicate<MouseEvent> getEventFilter() {

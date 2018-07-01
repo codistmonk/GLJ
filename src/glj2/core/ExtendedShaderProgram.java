@@ -109,60 +109,74 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 	}
 	
 	public final void setUniform1f(final String name, final float x) {
+		this.checkInUse();
 		this.gl.glUniform1f(this.glGetUniformLocation(name), x);
 	}
 	
 	public final void setUniform1fv(final String name, final int count, final FloatBuffer value) {
+		this.checkInUse();
 		this.gl.glUniform1fv(this.glGetUniformLocation(name), count, value);
 	}
 	
 	public final void setUniform1fv(final String name, final int count, final float[] value,
 			int valueOffset) {
+		this.checkInUse();
 		this.gl.glUniform1fv(this.glGetUniformLocation(name), count, value, valueOffset);
 	}
 	
 	public final void setUniform1i(final String name, final int x) {
+		this.checkInUse();
 		this.gl.glUniform1i(this.glGetUniformLocation(name), x);
 	}
 	
 	public final void setUniform1iv(final String name, final int count, final IntBuffer value) {
+		this.checkInUse();
 		this.gl.glUniform1iv(this.glGetUniformLocation(name), count, value);
 	}
 	
 	public final void setUniform1iv(final String name, final int count, final int[] value, final int valueOffset) {
+		this.checkInUse();
 		this.gl.glUniform1iv(this.glGetUniformLocation(name), count, value, valueOffset);
 	}
 	
 	public final void setUniform2f(final String name, final float x, final float y) {
+		this.checkInUse();
 		this.gl.glUniform2f(this.glGetUniformLocation(name), x, y);
 	}
 	
 	public final void setUniform2fv(final String name, final int count, final FloatBuffer value) {
+		this.checkInUse();
 		this.gl.glUniform2fv(this.glGetUniformLocation(name), count, value);
 	}
 	
 	public final void setUniform2fv(final String name, final int count, final float[] value,
 			int valueOffset) {
+		this.checkInUse();
 		this.gl.glUniform2fv(this.glGetUniformLocation(name), count, value, valueOffset);
 	}
 	
 	public final void setUniform2i(final String name, final int x, final int y) {
+		this.checkInUse();
 		this.gl.glUniform2i(this.glGetUniformLocation(name), x, y);
 	}
 	
 	public final void setUniform2iv(final String name, final int count, final IntBuffer value) {
+		this.checkInUse();
 		this.gl.glUniform2iv(this.glGetUniformLocation(name), count, value);
 	}
 	
 	public final void setUniform2iv(final String name, final int count, final int[] value, final int valueOffset) {
+		this.checkInUse();
 		this.gl.glUniform2iv(this.glGetUniformLocation(name), count, value, valueOffset);
 	}
 	
 	public final void setUniform3f(final String name, final float x, final float y, final float z) {
+		this.checkInUse();
 		this.gl.glUniform3f(this.glGetUniformLocation(name), x, y, z);
 	}
 	
 	public final void setUniform3fv(final String name, final int count, final FloatBuffer value) {
+		this.checkInUse();
 		this.gl.glUniform3fv(this.glGetUniformLocation(name), count, value);
 	}
 	
@@ -326,9 +340,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			return this.uniformName;
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = -3523752734533063594L;
 		
 	}
@@ -350,9 +361,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			program.setUniform1f(this.getUniformName(), this.x);
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = 4531602689503391339L;
 		
 	}
@@ -380,9 +388,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			program.setUniform1fv(this.getUniformName(), this.count, this.value, this.offset);
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = -7383188964928061148L;
 		
 	}
@@ -407,9 +412,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			program.setUniform1fv(this.getUniformName(), this.count, this.value);
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = 5769376835584423083L;
 		
 	}
@@ -431,9 +433,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			program.setUniform1i(this.getUniformName(), this.x);
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = 1894578739584432142L;
 		
 	}
@@ -461,9 +460,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			program.setUniform1iv(this.getUniformName(), this.count, this.value, this.offset);
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = 7159651052804554691L;
 		
 	}
@@ -488,9 +484,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			program.setUniform1iv(this.getUniformName(), this.count, this.value);
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = -8627081221981714669L;
 		
 	}
@@ -513,9 +506,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			program.setUniform2f(this.getUniformName(), this.x, this.y);
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = -8081317250901047804L;
 		
 	}
@@ -543,9 +533,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			program.setUniform2fv(this.getUniformName(), this.count, this.value, this.offset);
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = -4644764517179636862L;
 		
 	}
@@ -570,9 +557,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			program.setUniform2fv(this.getUniformName(), this.count, this.value);
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = -3479858774491261904L;
 		
 	}
@@ -595,9 +579,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			program.setUniform2i(this.getUniformName(), this.x, this.y);
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = -1786569512995794913L;
 		
 	}
@@ -625,9 +606,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			program.setUniform2iv(this.getUniformName(), this.count, this.value, this.offset);
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = -1725070986458573688L;
 		
 	}
@@ -652,9 +630,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			program.setUniform2iv(this.getUniformName(), this.count, this.value);
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = 8150477924407325111L;
 		
 	}
@@ -678,9 +653,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			program.setUniform3f(this.getUniformName(), this.x, this.y, this.z);
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = -371046934157626378L;
 		
 	}
@@ -708,9 +680,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			program.setUniform3fv(this.getUniformName(), this.count, this.value, this.offset);
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = 3445321867109676115L;
 		
 	}
@@ -735,9 +704,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			program.setUniform3fv(this.getUniformName(), this.count, this.value);
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = 977825581255689865L;
 		
 	}
@@ -761,9 +727,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			program.setUniform3i(this.getUniformName(), this.x, this.y, this.z);
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = -8749090025064315970L;
 		
 	}
@@ -791,9 +754,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			program.setUniform3iv(this.getUniformName(), this.count, this.value, this.offset);
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = 6415204820796124482L;
 		
 	}
@@ -818,9 +778,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			program.setUniform3iv(this.getUniformName(), this.count, this.value);
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = -6640028372332411513L;
 		
 	}
@@ -845,9 +802,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			program.setUniform4f(this.getUniformName(), this.x, this.y, this.z, this.w);
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = 8045266516490346123L;
 		
 	}
@@ -875,9 +829,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			program.setUniform4fv(this.getUniformName(), this.count, this.value, this.offset);
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = -5752369756832613174L;
 		
 	}
@@ -902,9 +853,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			program.setUniform4fv(this.getUniformName(), this.count, this.value);
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = 4483557406840533930L;
 		
 	}
@@ -929,9 +877,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			program.setUniform4i(this.getUniformName(), this.x, this.y, this.z, this.w);
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = 1908095885260636561L;
 		
 	}
@@ -959,9 +904,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			program.setUniform4iv(this.getUniformName(), this.count, this.value, this.offset);
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = 5879765211533868810L;
 		
 	}
@@ -986,9 +928,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			program.setUniform4iv(this.getUniformName(), this.count, this.value);
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = 5127106728028567954L;
 		
 	}
@@ -1019,9 +958,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			program.setUniformMatrix2fv(this.getUniformName(), this.count, this.transpose, this.value, this.offset);
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = 4279952097992358253L;
 		
 	}
@@ -1049,9 +985,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			program.setUniformMatrix2fv(this.getUniformName(), this.count, this.transpose, this.value);
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = 3094940695916683101L;
 		
 	}
@@ -1082,9 +1015,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			program.setUniformMatrix3fv(this.getUniformName(), this.count, this.transpose, this.value, this.offset);
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = 7472343005778252075L;
 		
 	}
@@ -1112,9 +1042,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			program.setUniformMatrix3fv(this.getUniformName(), this.count, this.transpose, this.value);
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = 592415301437347710L;
 		
 	}
@@ -1145,9 +1072,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			program.setUniformMatrix4fv(this.getUniformName(), this.count, this.transpose, this.value, this.offset);
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = 4039654756718444118L;
 		
 	}
@@ -1175,9 +1099,6 @@ public final class ExtendedShaderProgram extends ShaderProgram {
 			program.setUniformMatrix4fv(this.getUniformName(), this.count, this.transpose, this.value);
 		}
 		
-		/**
-		 * {@value}.
-		 */
 		private static final long serialVersionUID = 6275872226419231487L;
 		
 	}

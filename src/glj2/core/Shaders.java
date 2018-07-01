@@ -46,6 +46,17 @@ public final class Shaders {
 			"	gl_Position = transform * vec4(vertexLocation, 1.0);\n" +
 			"}\n");
 	
+	public static final ShaderCode VERTEX_SHADER_UNIFORM_TRANSFORM_IN_LOCATION_UV = vertexShader(
+			"#version 330\n" +
+					"uniform mat4 transform;\n" +
+					"in vec3 vertexLocation;\n" +
+					"in vec2 vertexUV;\n" +
+					"out vec2 interpolatedUV;\n" +
+					"void main() {\n" +
+					"	interpolatedUV = vertexUV;\n" +
+					"	gl_Position = transform * vec4(vertexLocation, 1.0);\n" +
+			"}\n");
+	
 	public static final ShaderCode FRAGMENT_SHADER_CONSTANT_COLOR = fragmentShader(
 			"#version 330\n" +
 			"out vec4 fragmentColor;\n" +
@@ -69,6 +80,15 @@ public final class Shaders {
 			"	fragmentColor = interpolatedColor;\n" +
 			"}\n");
 	
+	public static final ShaderCode FRAGMENT_SHADER_UNIFORM_TEXTURE_IN_UV = fragmentShader(
+			"#version 330\n" +
+			"uniform sampler2D texture;\n" +
+			"in vec2 interpolatedUV;\n" +
+			"out vec4 fragmentColor;\n" +
+			"void main() {\n" +
+			"	fragmentColor = texture2D(texture, interpolatedUV);\n" +
+			"}\n");
+	
 	public static final ExtendedShaderProgram newProgramV1F1(final GL2ES2 gl) {
 		return new ExtendedShaderProgram(gl).build(VERTEX_SHADER_IN_LOCATION, FRAGMENT_SHADER_CONSTANT_COLOR);
 	}
@@ -89,6 +109,13 @@ public final class Shaders {
 			.attribute("vertexLocation", 0)
 			.attribute("vertexColor", 1)
 			.build(VERTEX_SHADER_UNIFORM_TRANSFORM_IN_LOCATION_COLOR, FRAGMENT_SHADER_IN_COLOR);
+	}
+	
+	public static final ExtendedShaderProgram newProgramV3F4(final GL2ES2 gl) {
+		return new ExtendedShaderProgram(gl)
+				.attribute("vertexLocation", 0)
+				.attribute("vertexUV", 1)
+				.build(VERTEX_SHADER_UNIFORM_TRANSFORM_IN_LOCATION_UV, FRAGMENT_SHADER_UNIFORM_TEXTURE_IN_UV);
 	}
 	
 }

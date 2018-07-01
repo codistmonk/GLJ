@@ -15,16 +15,11 @@ import javax.vecmath.Vector3f;
 import glj2.core.Camera;
 import glj2.core.ExtendedShaderProgram;
 import glj2.core.ExtendedShaderProgram.UniformSetter;
-import glj2.std.FrameRate;
-import glj2.std.Orbiter;
-import glj2.core.GLJTools;
-import glj2.core.GLSwingContext;
 import glj2.core.Geometry;
 import glj2.core.MatrixConverter;
-import glj2.core.Scene;
 import glj2.core.Shaders;
-import glj2.core.Camera.ProjectionType;
-import glj2.core.ExtendedShaderProgram.UniformMatrix4FloatBuffer;
+import glj2.demos.Demo1.DefaultScene;
+import glj2.std.UniformMPV;
 
 import multij.swing.SwingTools;
 import multij.tools.IllegalInstantiationException;
@@ -64,17 +59,7 @@ public final class Demo2 {
 	public static final void main(final String[] commandLineArguments) {
 		SwingTools.useSystemLookAndFeel();
 		
-		final GLSwingContext context = new GLSwingContext();
-		
-		final Scene scene = new Scene() {
-			
-			private final FrameRate frameRate = new FrameRate(1_000_000_000L);
-			
-			private final Orbiter orbiter = new Orbiter(this);
-			
-			{
-				this.orbiter.addTo(context.getCanvas());
-			}
+		new DefaultScene() {
 			
 			@Override
 			protected final void initialize(final GLAutoDrawable drawable) {
@@ -88,7 +73,7 @@ public final class Demo2 {
 				}
 				
 				this.add("normal", Shaders.newProgramV3F3(gl))
-					.addUniformSetters(new UniformMatrix4FloatBuffer("transform", 1, true, this.getProjectionView().getBuffer()))
+					.addUniformSetters(new UniformMPV(this.getProjectionView().getMatrix()))
 					.addGeometries(this.add("quad1", newQuad(this.getGL())
 						.addVertex(0F, 0F, 0F, 1F, 0F, 0F, 1F)
 						.addVertex(1F, 0F, 0F, 1F, 1F, 0F, 1F)
@@ -101,43 +86,18 @@ public final class Demo2 {
 				.build(VERTEX_SHADER_UNIFORM_TRANSFORM_IN_LOCATION_COLOR, PSEUDOSPHERE_SHADER))
 						.addUniformSetters(new Billboarding(this.getCamera()))
 						.addGeometries(this.add("quad2", newQuad(this.getGL())
-						.addVertex(0F, 0F, 0F, 0F, 0F, 0F, 1F)
-						.addVertex(1F, 0F, 0F, 1F, 0F, 0F, 1F)
-						.addVertex(1F, 1F, 0F, 1F, 1F, 0F, 1F)
-						.addVertex(0F, 1F, 0F, 0F, 1F, 0F, 1F)));
+						.addVertex(-0.5F, -0.5F, 0F, 0F, 0F, 0F, 1F)
+						.addVertex(0.5F, -0.5F, 0F, 1F, 0F, 0F, 1F)
+						.addVertex(0.5F, 0.5F, 0F, 1F, 1F, 0F, 1F)
+						.addVertex(-0.5F, 0.5F, 0F, 0F, 1F, 0F, 1F)));
 				
-				this.getGeometry("quad2").getPosition().setTranslation(new Vector3f(-1F, 0F, 0F));
-				
-				this.orbiter.setClippingDepth(4F);
-				this.orbiter.setDistance(8F);
+				this.getGeometry("quad1").getPosition().setTranslation(new Vector3f(-1F, -1F, 0F));
+				this.getGeometry("quad2").getPosition().setTranslation(new Vector3f(0.5F, 0.5F, 0F));
 			}
 			
-			@Override
-			protected final void reshaped() {
-				GLJTools.setProjectionWithCanvasAspectRatio(this.getCamera(), ProjectionType.PERSPECTIVE);
-				
-				this.orbiter.updateSceneCamera();
-			}
-			
-			@Override
-			protected final void afterRender() {
-				super.afterRender();
-				
-				if (this.frameRate.ping()) {
-					context.getFrame().setTitle("" + this.frameRate.get());
-				}
-			}
-			
-			/**
-			 * {@value}.
-			 */
 			private static final long serialVersionUID = 1724345842755345704L;
 			
-		};
-		
-		context.getCanvas().addGLEventListener(scene);
-		
-		context.show();
+		}.show();
 	}
 	
 	public static final Matrix4f resetRotation(final Matrix4f matrix) {

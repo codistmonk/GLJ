@@ -4,9 +4,10 @@ import static glj2.core.Shaders.*;
 import static glj2.std.Mesh.newTriangle;
 import static multij.tools.Tools.debugPrint;
 
-import glj2.core.ExtendedShaderProgram.UniformMatrix4FloatBuffer;
 import glj2.std.FrameRate;
 import glj2.std.Orbiter;
+import glj2.std.UniformMPV;
+import glj2.core.GLJTools;
 import glj2.core.GLSwingContext;
 import glj2.core.Scene;
 import glj2.core.Camera.ProjectionType;
@@ -50,9 +51,6 @@ public final class Demo1 {
 						.addVertex(0F, 1F, -1F, 1F, 1F, 0F, 1F));
 			}
 			
-			/**
-			 * {@value}.
-			 */
 			private static final long serialVersionUID = 2457973938713347874L;
 			
 		}.show();
@@ -93,7 +91,7 @@ public final class Demo1 {
 			
 			this.setGeometry();
 			this.setShaders();
-			this.setOrbiter();
+			this.initializeOrbiter();
 		}
 		
 		protected void setGeometry() {
@@ -101,22 +99,20 @@ public final class Demo1 {
 		}
 		
 		protected void setShaders() {
-//			this.add("sp 1 1", newProgramV1F1(gl));
-//			this.add("sp 1 2", newProgramV1F2(gl));
-//			this.add("sp 2 3", newProgramV2F3(gl));
 			this.add("sp 3 3", newProgramV3F3(this.getGL()))
-			.addUniformSetters(new UniformMatrix4FloatBuffer("transform", 1, true, this.getProjectionView().getBuffer()))
+			.addUniformSetters(new UniformMPV(this.getProjectionView().getMatrix()))
 			.addGeometries(this.getGeometries().values());
 		}
 		
-		protected void setOrbiter() {
+		protected void initializeOrbiter() {
 			this.getOrbiter().setDistance(8F);
 			this.getOrbiter().setClippingDepth(4F);
 		}
 		
 		@Override
 		protected final void reshaped() {
-			this.getCamera().setProjectionType(ProjectionType.PERSPECTIVE).setProjection(-1F, 1F, -1F, 1F);
+			GLJTools.setProjectionWithCanvasAspectRatio(this.getCamera(), ProjectionType.PERSPECTIVE);
+			
 			this.getOrbiter().updateSceneCamera();
 		}
 		
@@ -124,7 +120,7 @@ public final class Demo1 {
 		protected final void afterRender() {
 			super.afterRender();
 			
-			if (this.frameRate.ping()) {
+			if (this.getFrameRate().ping()) {
 				this.getContext().getFrame().setTitle("" + this.frameRate.get());
 			}
 		}
