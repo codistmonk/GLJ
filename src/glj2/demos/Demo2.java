@@ -2,7 +2,7 @@ package glj2.demos;
 
 import static glj2.core.ExtendedShaderProgram.fragmentShader;
 import static glj2.core.Shaders.*;
-import static glj2.demos.Mesh.newQuad;
+import static glj2.std.Mesh.newQuad;
 
 import com.jogamp.opengl.util.glsl.ShaderCode;
 
@@ -15,11 +15,12 @@ import javax.vecmath.Vector3f;
 import glj2.core.Camera;
 import glj2.core.ExtendedShaderProgram;
 import glj2.core.ExtendedShaderProgram.UniformSetter;
+import glj2.std.FrameRate;
+import glj2.std.Orbiter;
 import glj2.core.GLJTools;
 import glj2.core.GLSwingContext;
 import glj2.core.Geometry;
 import glj2.core.MatrixConverter;
-import glj2.core.Orbiter;
 import glj2.core.Scene;
 import glj2.core.Shaders;
 import glj2.core.Camera.ProjectionType;
@@ -98,27 +99,7 @@ public final class Demo2 {
 				.attribute("vertexLocation", 0)
 				.attribute("vertexColor", 1)
 				.build(VERTEX_SHADER_UNIFORM_TRANSFORM_IN_LOCATION_COLOR, PSEUDOSPHERE_SHADER))
-						.addUniformSetters(new UniformSetter() {
-							
-							private final MatrixConverter billboardingTransform = new MatrixConverter();
-							
-							@Override
-							public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
-								final Matrix4f billboardingMatrix = this.billboardingTransform.getMatrix();
-								final Camera camera = getCamera();
-								
-								billboardingMatrix.mul(camera.getView(), geometry.getPosition());
-								billboardingMatrix.mul(camera.getProjection(), resetRotation(billboardingMatrix));
-								
-								program.setUniformMatrix4fv("transform", 1, true, this.billboardingTransform.updateBuffer());
-							}
-							
-							/**
-							 * {@value}.
-							 */
-							private static final long serialVersionUID = 5152623125713666882L;
-							
-						})
+						.addUniformSetters(new Billboarding(this.getCamera()))
 						.addGeometries(this.add("quad2", newQuad(this.getGL())
 						.addVertex(0F, 0F, 0F, 0F, 0F, 0F, 1F)
 						.addVertex(1F, 0F, 0F, 1F, 0F, 0F, 1F)
@@ -171,6 +152,34 @@ public final class Demo2 {
 		matrix.m22 = 1F;
 		
 		return matrix;
+	}
+	
+	/**
+	 * @author codistmonk (creation 2018-07-01)
+	 */
+	public static final class Billboarding implements UniformSetter {
+		
+		private final Camera camera;
+		
+		private final MatrixConverter billboardingTransform;
+		
+		public Billboarding(final Camera camera) {
+			this.camera = camera;
+			this.billboardingTransform = new MatrixConverter();
+		}
+		
+		@Override
+		public final void applyTo(final ExtendedShaderProgram program, final Geometry geometry) {
+			final Matrix4f billboardingMatrix = this.billboardingTransform.getMatrix();
+			final Camera camera = this.camera;
+			
+			billboardingMatrix.mul(camera.getView(), geometry.getPosition());
+			billboardingMatrix.mul(camera.getProjection(), resetRotation(billboardingMatrix));
+			
+			program.setUniformMatrix4fv("transform", 1, true, this.billboardingTransform.updateBuffer());
+		}
+		
+		private static final long serialVersionUID = 5152623125713666882L;
 	}
 	
 }

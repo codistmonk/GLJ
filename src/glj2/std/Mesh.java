@@ -1,4 +1,4 @@
-package glj2.demos;
+package glj2.std;
 
 import glj2.core.GLJTools;
 import glj2.core.Geometry;
@@ -39,7 +39,8 @@ public final class Mesh implements Geometry {
 		this.drawingMode = GL.GL_LINE_LOOP;
 		
 		this.buffers.add(Buffers.newDirectFloatBuffer(vertexCount * LOCATION_COMPONENTS));
-		this.buffers.add(Buffers.newDirectFloatBuffer(vertexCount * COLOR_COMPONENTS));
+		
+		this.setStride(vertexCount);
 	}
 	
 	public final int getDrawingMode() {
@@ -62,7 +63,19 @@ public final class Mesh implements Geometry {
 	}
 	
 	public final FloatBuffer getColors() {
+		if (this.buffers.size() <= 1) {
+			this.buffers.add(Buffers.newDirectFloatBuffer(this.getVertexCount() * COLOR_COMPONENTS));
+		}
+		
 		return (FloatBuffer) this.buffers.get(COLORS);
+	}
+	
+	public final FloatBuffer getUVs() {
+		if (this.buffers.size() <= 1) {
+			this.buffers.add(Buffers.newDirectFloatBuffer(this.getVertexCount() * UV_COMPONENTS));
+		}
+		
+		return (FloatBuffer) this.buffers.get(UVS);
 	}
 	
 	public final int getVertexCount() {
@@ -86,8 +99,25 @@ public final class Mesh implements Geometry {
 		return this;
 	}
 	
+	public final Mesh addVertex(final float x, final float y, final float z,
+			final float u, final float v) {
+		this.getLocations().put(new float[] { x, y, z });
+		this.getColors().put(new float[] { u, v });
+		
+		if (!this.getLocations().hasRemaining()) {
+			final GL3 gl = this.getVAO().getGL();
+			
+			this.getVAO().bind(true)
+			.addAttribute3f(new VBO(gl, this.getLocations().position(0), GL.GL_STATIC_DRAW))
+			.addAttribute2f(new VBO(gl, this.getUVs().position(0), GL.GL_STATIC_DRAW))
+			.bind(false);
+		}
+		
+		return this;
+	}
+	
 	public final void updateLocations() {
-		this.updateLocations(0, this.getVertexCount() * LOCATION_COMPONENTS);
+		this.updateLocations(0, this.getVertexCount());
 	}
 	
 	public final void updateLocations(final int start, final int end) {
@@ -99,7 +129,7 @@ public final class Mesh implements Geometry {
 	}
 	
 	public final void updateColors() {
-		this.updateColors(0, this.getVertexCount() * COLOR_COMPONENTS);
+		this.updateColors(0, this.getVertexCount());
 	}
 	
 	public final void updateColors(final int start, final int end) {
@@ -110,12 +140,41 @@ public final class Mesh implements Geometry {
 		this.updateVBO(COLORS, COLOR_COMPONENTS, start, end, data);
 	}
 	
+	public final void updateUVs() {
+		this.updateColors(0, this.getVertexCount());
+	}
+	
+	public final void updateUVs(final int start, final int end) {
+		this.updateColors(start, end, this.getColors().position(start * UV_COMPONENTS));
+	}
+	
+	public final void updateUVs(final int start, final int end, final Buffer data) {
+		this.updateVBO(UVS, UV_COMPONENTS, start, end, data);
+	}
+	
+	private int stride;
+	
+	public final int getStride() {
+		return this.stride;
+	}
+	
+	public final Mesh setStride(final int stride) {
+		this.stride = stride;
+		
+		return this;
+	}
+	
 	@Override
 	public final void render() {
 		final VAO vao = this.getVAO();
+		final GL3 gl = vao.getGL();
+		final int n = this.getVertexCount();
+		final int s = this.getStride();
 		
 		vao.bind(true);
-		vao.getGL().glDrawArrays(this.getDrawingMode(), 0, this.getVertexCount());
+		for (int i = 0; i < n; i += s) {
+			gl.glDrawArrays(this.getDrawingMode(), i, s);
+		}
 		vao.bind(false);
 	}
 	
@@ -138,9 +197,13 @@ public final class Mesh implements Geometry {
 	
 	public static final int COLOR_COMPONENTS = 4;
 	
+	public static final int UV_COMPONENTS = 2;
+	
 	public static final int LOCATIONS = 0;
 	
 	public static final int COLORS = 1;
+	
+	public static final int UVS = 1;
 	
 	public static final Mesh newTriangle(final GL3 gl) {
 		return new Mesh(gl, 3).setDrawingMode(GL.GL_TRIANGLES);

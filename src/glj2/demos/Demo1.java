@@ -1,12 +1,13 @@
 package glj2.demos;
 
 import static glj2.core.Shaders.*;
-import static glj2.demos.Mesh.newTriangle;
+import static glj2.std.Mesh.newTriangle;
 import static multij.tools.Tools.debugPrint;
 
 import glj2.core.ExtendedShaderProgram.UniformMatrix4FloatBuffer;
+import glj2.std.FrameRate;
+import glj2.std.Orbiter;
 import glj2.core.GLSwingContext;
-import glj2.core.Orbiter;
 import glj2.core.Scene;
 import glj2.core.Camera.ProjectionType;
 

@@ -1,4 +1,4 @@
-package glj2.core;
+package glj2.std;
 
 import static java.lang.Math.PI;
 import static java.lang.Math.cos;
@@ -14,6 +14,9 @@ import java.util.function.Predicate;
 
 import javax.vecmath.Point3f;
 
+import glj2.core.Camera;
+import glj2.core.GLJTools;
+import glj2.core.Scene;
 import multij.swing.MouseHandler;
 import multij.tools.Tools;
 

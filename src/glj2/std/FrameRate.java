@@ -1,4 +1,4 @@
-package glj2.demos;
+package glj2.std;
 
 import java.io.Serializable;
 
