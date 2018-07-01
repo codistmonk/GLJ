@@ -5,8 +5,10 @@ import glj2.core.Geometry;
 import glj2.core.VAO;
 import glj2.core.VBO;
 
+import java.awt.image.BufferedImage;
 import java.nio.Buffer;
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,9 +32,11 @@ public final class Mesh implements Geometry {
 	
 	private final int vertexCount;
 	
+	private int stride;
+	
 	private int drawingMode;
 	
-	private int texture;
+	private IntBuffer texture;
 	
 	public Mesh(final GL3 gl, final int vertexCount) {
 		this.position = GLJTools.newIdentity();
@@ -47,11 +51,31 @@ public final class Mesh implements Geometry {
 	}
 	
 	public final int getTexture() {
-		return this.texture;
+		return this.texture.get(0);
 	}
 	
-	public final Mesh setTexture(final int texture) {
-		this.texture = texture;
+	public final Mesh setTexture(final BufferedImage image) {
+		final int w = image.getWidth();
+		final int h = image.getHeight();
+		final IntBuffer data = Buffers.newDirectIntBuffer(w * h);
+		
+		for (int y = 0; y < h; ++y) {
+			for (int x = 0; x < w; ++x) {
+				data.put(image.getRGB(x, h - 1 - y));
+			}
+		}
+		
+		final GL3 gl = this.getVAO().getGL();
+		
+		if (this.texture == null) {
+			this.texture = Buffers.newDirectIntBuffer(1);
+		}
+		
+		gl.glGenTextures(1, this.texture);
+		gl.glBindTexture(GL.GL_TEXTURE_2D, this.getTexture());
+		gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, w, h, 0, GL.GL_BGRA, GL.GL_UNSIGNED_BYTE, data.position(0));
+		gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
+		gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
 		
 		return this;
 	}
@@ -165,8 +189,6 @@ public final class Mesh implements Geometry {
 		this.updateVBO(UVS, UV_COMPONENTS, start, end, data);
 	}
 	
-	private int stride;
-	
 	public final int getStride() {
 		return this.stride;
 	}
@@ -185,17 +207,37 @@ public final class Mesh implements Geometry {
 		final int s = this.getStride();
 		
 		vao.bind(true);
-		gl.glActiveTexture(GL.GL_TEXTURE0 + 0);
-		gl.glBindTexture(GL.GL_TEXTURE_2D, this.getTexture());
+		
+		this.maybeActivateTexture(gl);
+		
 		for (int i = 0; i < n; i += s) {
 			gl.glDrawArrays(this.getDrawingMode(), i, s);
 		}
+		
 		vao.bind(false);
 	}
 	
 	@Override
 	public final VAO getVAO() {
 		return this.vao;
+	}
+	
+	@Override
+	protected final void finalize() throws Throwable {
+		try {
+			if (this.texture != null) {
+				this.getVAO().getGL().glDeleteTextures(1, this.texture);
+			}
+		} finally {
+			super.finalize();
+		}
+	}
+	
+	private final void maybeActivateTexture(final GL3 gl) {
+		if (this.texture != null) {
+			gl.glActiveTexture(GL.GL_TEXTURE0 + 0);
+			gl.glBindTexture(GL.GL_TEXTURE_2D, this.getTexture());
+		}
 	}
 	
 	private final void updateVBO(final int vboIndex, final int components, final int start, final int end, final Buffer data) {
@@ -227,6 +269,15 @@ public final class Mesh implements Geometry {
 	
 	public static final Mesh newQuad(final GL3 gl) {
 		return new Mesh(gl, 4).setDrawingMode(GL.GL_TRIANGLE_FAN);
+	}
+	
+	public static final Mesh newQuad(final GL3 gl, final BufferedImage image) {
+		return newQuad(gl)
+				.setTexture(image)
+				.addVertex(-0.5F, -0.5F, 0F, 0F, 0F)
+				.addVertex(+0.5F, -0.5F, 0F, 1F, 0F)
+				.addVertex(+0.5F, +0.5F, 0F, 1F, 1F)
+				.addVertex(-0.5F, +0.5F, 0F, 0F, 1F);
 	}
 	
 	public static final Mesh newPoints(final GL3 gl, final int n) {
