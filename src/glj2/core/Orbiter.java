@@ -10,6 +10,7 @@ import static java.lang.Math.tan;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
+import java.util.function.Predicate;
 
 import javax.vecmath.Point3f;
 
@@ -37,16 +38,17 @@ public final class Orbiter extends MouseHandler {
 	
 	private float clippingFar;
 	
-//	private float clippingDepth;
+	private Predicate<MouseEvent> eventFilter;
 	
 	public Orbiter(final Scene scene) {
 		super(scene.getUpdatedNeeded());
 		this.scene = scene;
 		this.target = new Point3f();
 		this.distance = 4F;
-//		this.clippingDepth = 1F;
 		this.clippingNear = -0.5F;
 		this.clippingFar = 0.5F;
+		
+		this.setEventFilter(e -> true);
 	}
 	
 	public final float getDistance() {
@@ -94,19 +96,29 @@ public final class Orbiter extends MouseHandler {
 	}
 	
 	public final float getClippingDepth() {
-//		return this.clippingDepth;
 		return this.getClippingFar() - this.getClippingNear();
 	}
 	
 	public final void setClippingDepth(final float clippingDepth) {
-//		this.clippingDepth = clippingDepth;
 		this.setClippingNear(-clippingDepth / 2F);
 		this.setClippingFar(clippingDepth / 2F);
 		Tools.debugPrint(clippingDepth);
 	}
 	
+	public final Predicate<MouseEvent> getEventFilter() {
+		return this.eventFilter;
+	}
+	
+	public final void setEventFilter(final Predicate<MouseEvent> eventFilter) {
+		this.eventFilter = eventFilter;
+	}
+	
 	@Override
 	public final void mouseDragged(final MouseEvent event) {
+		if (!this.getEventFilter().test(event)) {
+			return;
+		}
+		
 		if (this.mouse != null) {
 			final int x = event.getX();
 			final int y = event.getY();
@@ -130,6 +142,10 @@ public final class Orbiter extends MouseHandler {
 	
 	@Override
 	public final void mouseWheelMoved(final MouseWheelEvent event) {
+		if (!this.getEventFilter().test(event)) {
+			return;
+		}
+		
 		if (!event.isControlDown() && !event.isShiftDown() && !event.isAltDown() && !event.isAltGraphDown() && !event.isMetaDown()) {
 			if (event.getWheelRotation() < 0) {
 				this.setDistance(this.getDistance() * 0.8F);
@@ -146,8 +162,6 @@ public final class Orbiter extends MouseHandler {
 		final float distance = this.getDistance();
 		final float[] clipping = camera.getClipping();
 		
-//		clipping[4] = Math.max(0.01F, distance - this.clippingDepth / 2F);
-//		clipping[5] = clipping[4] + this.clippingDepth;
 		clipping[4] = Math.max(0.01F, distance + this.getClippingNear());
 		clipping[5] = clipping[4] + this.getClippingDepth();
 		

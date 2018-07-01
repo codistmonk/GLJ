@@ -1,10 +1,15 @@
 package glj2.core;
 
+import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.util.Animator;
 
+import java.awt.Dimension;
 import java.io.Serializable;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.media.opengl.DebugGL4;
@@ -29,11 +34,35 @@ public abstract class Scene implements GLEventListener, Serializable {
 	
 	private final Map<String, ExtendedShaderProgram> shaderPrograms = new LinkedHashMap<>();
 	
+	private final Map<String, ExtendedShaderProgram> selectionShaderPrograms = new LinkedHashMap<>();
+	
 	private final Map<String, Geometry> geometries = new LinkedHashMap<>();
+	
+	private final Map<String, Geometry> selectionGeometries = new LinkedHashMap<>();
 	
 	private GL gl;
 	
 	private int renderBuffersOutdated;
+	
+	private final IntBuffer selectionFrameBuffer = Buffers.newDirectIntBuffer(1);
+	
+	private final IntBuffer selectionRenderBuffer = Buffers.newDirectIntBuffer(1);
+	
+	private final IntBuffer selectionDepthBuffer = Buffers.newDirectIntBuffer(1);
+	
+	private ByteBuffer selectionData;
+	
+	private final int[] selectionId = { 1 };
+	
+	private final TreeMap<Integer, Object> selectableObjects = new TreeMap<>();
+	
+	public final int[] getSelectionId() {
+		return this.selectionId;
+	}
+	
+	public final TreeMap<Integer, Object> getSelectableObjects() {
+		return this.selectableObjects;
+	}
 	
 	public final AtomicBoolean getUpdatedNeeded() {
 		return this.updatedNeeded;
@@ -55,8 +84,18 @@ public abstract class Scene implements GLEventListener, Serializable {
 		return this.shaderPrograms;
 	}
 	
+	public final Map<String, ExtendedShaderProgram> getSelectionShaderPrograms() {
+		return this.selectionShaderPrograms;
+	}
+	
 	public final ExtendedShaderProgram add(final String name, final ExtendedShaderProgram shaderProgram) {
 		this.getShaderPrograms().put(name, shaderProgram);
+		
+		return shaderProgram;
+	}
+	
+	public final ExtendedShaderProgram addSelectionShader(final String name, final ExtendedShaderProgram shaderProgram) {
+		this.getSelectionShaderPrograms().put(name, shaderProgram);
 		
 		return shaderProgram;
 	}
@@ -65,8 +104,18 @@ public abstract class Scene implements GLEventListener, Serializable {
 		return this.geometries;
 	}
 	
+	public final Map<String, Geometry> getSelectionGeometries() {
+		return this.selectionGeometries;
+	}
+	
 	public final Geometry add(final String name, final Geometry geometry) {
 		this.getGeometries().put(name, geometry);
+		
+		return geometry;
+	}
+	
+	public final Geometry addSelectionGeometry(final String name, final Geometry geometry) {
+		this.getSelectionGeometries().put(name, geometry);
 		
 		return geometry;
 	}
@@ -88,6 +137,12 @@ public abstract class Scene implements GLEventListener, Serializable {
 			this.gl.glDepthFunc(GL.GL_LESS);
 		}
 		
+		{
+			drawable.getGL().glGenFramebuffers(1, this.selectionFrameBuffer);
+			drawable.getGL().glGenRenderbuffers(1, this.selectionRenderBuffer);
+			drawable.getGL().glGenRenderbuffers(1, this.selectionDepthBuffer);
+		}
+		
 		this.initialize(drawable);
 		
 		drawable.setAnimator(new Animator(drawable));
@@ -102,10 +157,19 @@ public abstract class Scene implements GLEventListener, Serializable {
 			animator.stop();
 		}
 		
+		drawable.getGL().glDeleteFramebuffers(1, this.selectionFrameBuffer);
+		drawable.getGL().glDeleteRenderbuffers(1, this.selectionRenderBuffer);
+		drawable.getGL().glDeleteRenderbuffers(1, this.selectionDepthBuffer);
+		
 		this.getShaderPrograms().clear();
+		this.getSelectionShaderPrograms().clear();
 		this.getGeometries().clear();
 		
 		Tools.gc(100L);
+	}
+	
+	public final ByteBuffer getSelectionData() {
+		return this.selectionData;
 	}
 	
 	@Override
@@ -113,7 +177,28 @@ public abstract class Scene implements GLEventListener, Serializable {
 			final int width, final int height) {
 		this.getCamera().setCanvasSize(width, height).updateGL();
 		
+		this.reshapeSelectionBuffers(width, height);
+		
 		this.reshaped();
+	}
+	
+	private final void reshapeSelectionBuffers(final int width, final int height) {
+		this.getGL().glBindFramebuffer(GL.GL_FRAMEBUFFER, this.selectionFrameBuffer.get(0));
+		
+		this.getGL().glBindRenderbuffer(GL.GL_RENDERBUFFER, this.selectionRenderBuffer.get(0));
+		this.getGL().glRenderbufferStorage(GL.GL_RENDERBUFFER, GL.GL_RGBA8, width, height);
+		this.getGL().glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_COLOR_ATTACHMENT0, GL.GL_RENDERBUFFER, this.selectionRenderBuffer.get(0));
+		
+		this.getGL().glBindRenderbuffer(GL.GL_RENDERBUFFER, this.selectionDepthBuffer.get(0));
+		this.getGL().glRenderbufferStorage(GL.GL_RENDERBUFFER, GL.GL_DEPTH_COMPONENT16, width, height);
+		this.getGL().glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_DEPTH_ATTACHMENT, GL.GL_RENDERBUFFER, this.selectionDepthBuffer.get(0));
+		
+		this.getGL().glEnable(GL.GL_DEPTH_TEST);
+		this.getGL().glDepthFunc(GL.GL_LESS);
+		
+		this.getGL().glBindFramebuffer(GL.GL_FRAMEBUFFER, 0);
+		
+		this.selectionData = Buffers.newDirectByteBuffer(width * height * 4);
 	}
 	
 	@Override
@@ -157,7 +242,21 @@ public abstract class Scene implements GLEventListener, Serializable {
 	}
 	
 	protected void render() {
-		this.shaderPrograms.values().forEach(ExtendedShaderProgram::run);
+		this.getShaderPrograms().values().forEach(ExtendedShaderProgram::run);
+		
+		this.selectionRender();
+	}
+	
+	private final void selectionRender() {
+		if (!this.getSelectionShaderPrograms().isEmpty()) {
+			final Dimension canvasSize = this.getCamera().getCanvasSize();
+			
+			this.getGL().glBindFramebuffer(GL.GL_FRAMEBUFFER, this.selectionFrameBuffer.get(0));
+			this.getGL().glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
+			this.getSelectionShaderPrograms().values().forEach(ExtendedShaderProgram::run);
+			this.getGL().glReadPixels(0, 0, canvasSize.width, canvasSize.height, GL.GL_BGRA, GL.GL_UNSIGNED_BYTE, this.selectionData);
+			this.getGL().glBindFramebuffer(GL.GL_FRAMEBUFFER, 0);
+		}
 	}
 	
 	protected void afterRender() {

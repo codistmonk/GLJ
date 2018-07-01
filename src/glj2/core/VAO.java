@@ -106,8 +106,9 @@ public final class VAO implements Serializable {
 		}
 		
 		vbo.bind();
-		this.gl.glEnableVertexAttribArray(this.attributeCount);
-		this.gl.glVertexAttribPointer(this.attributeCount,
+		
+		this.getGL().glEnableVertexAttribArray(this.attributeCount);
+		this.getGL().glVertexAttribPointer(this.attributeCount,
 				attributeComponentCount, attributeComponentType, normalizeFixedPoint, stride, pointerBufferOffset);
 		
 		++this.attributeCount;
