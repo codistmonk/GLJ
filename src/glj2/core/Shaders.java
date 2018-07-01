@@ -82,11 +82,11 @@ public final class Shaders {
 	
 	public static final ShaderCode FRAGMENT_SHADER_UNIFORM_TEXTURE_IN_UV = fragmentShader(
 			"#version 330\n" +
-			"uniform sampler2D texture;\n" +
+			"uniform sampler2D tex;\n" +
 			"in vec2 interpolatedUV;\n" +
 			"out vec4 fragmentColor;\n" +
 			"void main() {\n" +
-			"	fragmentColor = texture2D(texture, interpolatedUV);\n" +
+			"	fragmentColor = texture(tex, interpolatedUV).bgra;\n" +
 			"}\n");
 	
 	public static final ExtendedShaderProgram newProgramV1F1(final GL2ES2 gl) {

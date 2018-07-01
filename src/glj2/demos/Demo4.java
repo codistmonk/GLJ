@@ -71,7 +71,7 @@ public final class Demo4 {
 				this.add("texture0", Shaders.newProgramV3F4(gl))
 						.addUniformSetters(
 								new UniformMPV(this.getProjectionView().getMatrix()),
-								new Uniform1Int("vertexUV", 0))
+								new Uniform1Int("tex", 0))
 						.addGeometries(
 								this.add("quad1", newQuad(gl, image1)),
 								this.add("quad2", newQuad(gl, image2)));
