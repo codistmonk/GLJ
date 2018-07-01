@@ -1,7 +1,7 @@
 package glj2.demos;
 
 import static glj2.core.Shaders.*;
-import static glj2.demos.Polygon.newTriangle;
+import static glj2.demos.Mesh.newTriangle;
 import static multij.tools.Tools.debugPrint;
 
 import glj2.core.ExtendedShaderProgram.UniformMatrix4FloatBuffer;

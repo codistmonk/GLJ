@@ -19,7 +19,7 @@ import com.jogamp.common.nio.Buffers;
 /**
  * @author codistmonk (creation 2014-08-17)
  */
-public final class Polygon implements Geometry {
+public final class Mesh implements Geometry {
 	
 	private final Matrix4f position;
 	
@@ -31,7 +31,7 @@ public final class Polygon implements Geometry {
 	
 	private int drawingMode;
 	
-	public Polygon(final GL3 gl, final int vertexCount) {
+	public Mesh(final GL3 gl, final int vertexCount) {
 		this.position = GLJTools.newIdentity();
 		this.buffers = new ArrayList<>();
 		this.vao = new VAO(gl);
@@ -46,7 +46,7 @@ public final class Polygon implements Geometry {
 		return this.drawingMode;
 	}
 	
-	public final Polygon setDrawingMode(final int drawingMode) {
+	public final Mesh setDrawingMode(final int drawingMode) {
 		this.drawingMode = drawingMode;
 		
 		return this;
@@ -69,7 +69,7 @@ public final class Polygon implements Geometry {
 		return this.vertexCount;
 	}
 	
-	public final Polygon addVertex(final float x, final float y, final float z,
+	public final Mesh addVertex(final float x, final float y, final float z,
 			final float r, final float g, final float b, final float a) {
 		this.getLocations().put(new float[] { x, y, z });
 		this.getColors().put(new float[] { r, g, b, a });
@@ -142,16 +142,16 @@ public final class Polygon implements Geometry {
 	
 	public static final int COLORS = 1;
 	
-	public static final Polygon newTriangle(final GL3 gl) {
-		return new Polygon(gl, 3).setDrawingMode(GL.GL_TRIANGLES);
+	public static final Mesh newTriangle(final GL3 gl) {
+		return new Mesh(gl, 3).setDrawingMode(GL.GL_TRIANGLES);
 	}
 	
-	public static final Polygon newQuad(final GL3 gl) {
-		return new Polygon(gl, 4).setDrawingMode(GL.GL_TRIANGLE_FAN);
+	public static final Mesh newQuad(final GL3 gl) {
+		return new Mesh(gl, 4).setDrawingMode(GL.GL_TRIANGLE_FAN);
 	}
 	
-	public static final Polygon newPoints(final GL3 gl, final int n) {
-		return new Polygon(gl, n).setDrawingMode(GL.GL_POINTS);
+	public static final Mesh newPoints(final GL3 gl, final int n) {
+		return new Mesh(gl, n).setDrawingMode(GL.GL_POINTS);
 	}
 	
 }

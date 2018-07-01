@@ -2,7 +2,7 @@ package glj2.demos;
 
 import static glj2.core.ExtendedShaderProgram.fragmentShader;
 import static glj2.core.Shaders.*;
-import static glj2.demos.Polygon.newQuad;
+import static glj2.demos.Mesh.newQuad;
 
 import com.jogamp.opengl.util.glsl.ShaderCode;
 

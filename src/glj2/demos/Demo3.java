@@ -1,7 +1,7 @@
 package glj2.demos;
 
 import static glj2.core.Shaders.*;
-import static glj2.demos.Polygon.newPoints;
+import static glj2.demos.Mesh.newPoints;
 import static multij.tools.Tools.debugPrint;
 
 import glj2.core.ExtendedShaderProgram.UniformMatrix4FloatBuffer;
@@ -61,7 +61,7 @@ public final class Demo3 {
 					
 					debugPrint("vertexCount:", vertexCount);
 					
-					final Polygon cloud = newPoints(gl, vertexCount);
+					final Mesh cloud = newPoints(gl, vertexCount);
 					
 					for (int x = 0; x <= n; ++x) {
 						for (int y = 0; y <= n; ++y) {
