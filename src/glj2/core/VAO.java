@@ -62,6 +62,10 @@ public final class VAO implements Serializable {
 		return this;
 	}
 	
+	public final VAO addAttribute(final VBO vbo) {
+		return this.addAttributeNT(vbo, vbo.getComponentCount(), vbo.getComponentType());
+	}
+	
 	public final VAO addAttribute1f(final VBO vbo) {
 		return this.addAttributeNf(vbo, 1);
 	}
@@ -79,7 +83,11 @@ public final class VAO implements Serializable {
 	}
 	
 	public final VAO addAttributeNf(final VBO vbo, final int n) {
-		return this.addAttribute(vbo, n, GL.GL_FLOAT, false, 0, 0L);
+		return this.addAttributeNT(vbo, n, GL.GL_FLOAT);
+	}
+	
+	public final VAO addAttributeNT(final VBO vbo, final int n, final int componentType) {
+		return this.addAttribute(vbo, n, componentType, false, 0, 0L);
 	}
 	
 	public final VAO addIndices(final VBO vbo) {

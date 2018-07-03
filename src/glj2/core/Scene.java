@@ -3,6 +3,9 @@ package glj2.core;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.util.Animator;
 
+import static glj2.core.GLJTools.checkFrameBufferStatus;
+import static multij.tools.Tools.ints;
+
 import java.awt.Dimension;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
@@ -15,12 +18,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.media.opengl.DebugGL4;
 import javax.media.opengl.GL;
+import javax.media.opengl.GL2;
 import javax.media.opengl.GL4;
 import javax.media.opengl.GLAnimatorControl;
 import javax.media.opengl.GLAutoDrawable;
 import javax.media.opengl.GLEventListener;
 
-import multij.tools.Pair;
 import multij.tools.Tools;
 
 /**
@@ -101,7 +104,7 @@ public abstract class Scene implements GLEventListener, Serializable {
 			this.gl.glDepthFunc(GL.GL_LESS);
 		}
 		
-		this.picking.initialize();
+		this.getPicking().initialize();
 		this.initialize(drawable);
 		
 		drawable.setAnimator(new Animator(drawable));
@@ -118,7 +121,7 @@ public abstract class Scene implements GLEventListener, Serializable {
 		
 		this.dispose();
 		
-		this.picking.dispose();
+		this.getPicking().dispose();
 		this.getShaderPrograms().clear();
 		this.getGeometries().clear();
 		
@@ -134,7 +137,7 @@ public abstract class Scene implements GLEventListener, Serializable {
 			final int width, final int height) {
 		this.getCamera().setCanvasSize(width, height).updateGL();
 		
-		this.picking.reshape(width, height);
+		this.getPicking().reshape(width, height);
 		
 		this.reshaped();
 	}
@@ -182,7 +185,7 @@ public abstract class Scene implements GLEventListener, Serializable {
 	protected void render() {
 		this.getShaderPrograms().values().forEach(ExtendedShaderProgram::run);
 		
-		this.picking.render();
+		this.getPicking().render();
 	}
 	
 	protected void afterRender() {
@@ -194,7 +197,7 @@ public abstract class Scene implements GLEventListener, Serializable {
 	 */
 	public final class Picking implements Serializable {
 		
-		private final Map<String, ExtendedShaderProgram> shaderPrograms = new LinkedHashMap<>();
+		private final Map<String, ExtendedShaderProgram> idShaderPrograms = new LinkedHashMap<>();
 		
 		private final Map<String, Geometry> geometries = new LinkedHashMap<>();
 		
@@ -204,14 +207,20 @@ public abstract class Scene implements GLEventListener, Serializable {
 		
 		private final IntBuffer depthBuffer = Buffers.newDirectIntBuffer(1);
 		
-		private ByteBuffer data;
+		private final IntBuffer uvBuffer = Buffers.newDirectIntBuffer(1);
+		
+		private ByteBuffer idData;
+		
+		private ByteBuffer uvData;
 		
 		private final int[] id = { 1 };
 		
 		private final TreeMap<Integer, Object> objects = new TreeMap<>();
 		
+		private final Pick pick = this.new Pick();
+		
 		public final Map<String, ExtendedShaderProgram> getShaderPrograms() {
-			return this.shaderPrograms;
+			return this.idShaderPrograms;
 		}
 		
 		public final int[] getId() {
@@ -234,6 +243,7 @@ public abstract class Scene implements GLEventListener, Serializable {
 			gl.glGenFramebuffers(1, this.frameBuffer);
 			gl.glGenRenderbuffers(1, this.renderBuffer);
 			gl.glGenRenderbuffers(1, this.depthBuffer);
+			gl.glGenRenderbuffers(1, this.uvBuffer);
 		}
 		
 		public final void dispose() {
@@ -242,6 +252,7 @@ public abstract class Scene implements GLEventListener, Serializable {
 			gl.glDeleteFramebuffers(1, this.frameBuffer);
 			gl.glDeleteRenderbuffers(1, this.renderBuffer);
 			gl.glDeleteRenderbuffers(1, this.depthBuffer);
+			gl.glDeleteRenderbuffers(1, this.uvBuffer);
 			
 			this.getShaderPrograms().clear();
 			this.getGeometries().clear();
@@ -260,29 +271,45 @@ public abstract class Scene implements GLEventListener, Serializable {
 			gl.glRenderbufferStorage(GL.GL_RENDERBUFFER, GL.GL_DEPTH_COMPONENT16, width, height);
 			gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_DEPTH_ATTACHMENT, GL.GL_RENDERBUFFER, this.depthBuffer.get(0));
 			
+			gl.glBindRenderbuffer(GL.GL_RENDERBUFFER, this.uvBuffer.get(0));
+			gl.glRenderbufferStorage(GL.GL_RENDERBUFFER, GL.GL_RGBA8, width, height);
+			gl.glFramebufferRenderbuffer(GL.GL_FRAMEBUFFER, GL.GL_COLOR_ATTACHMENT0 + 1, GL.GL_RENDERBUFFER, this.uvBuffer.get(0));
+			
 			gl.glEnable(GL.GL_DEPTH_TEST);
 			gl.glDepthFunc(GL.GL_LESS);
 			
 			gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0);
 			
-			this.data = Buffers.newDirectByteBuffer(width * height * 4);
+			this.idData = Buffers.newDirectByteBuffer(width * height * Integer.BYTES);
+			this.uvData = Buffers.newDirectByteBuffer(width * height * Float.BYTES * 2);
 		}
 		
 		public final void render() {
 			if (!this.getShaderPrograms().isEmpty()) {
 				final Dimension canvasSize = getCamera().getCanvasSize();
-				final GL gl = getGL();
+				final GL2 gl = getGL();
 				
 				gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, this.frameBuffer.get(0));
+				gl.glDrawBuffers(2, ints(GL.GL_COLOR_ATTACHMENT0, GL.GL_COLOR_ATTACHMENT0 + 1), 0);
+				
+				checkFrameBufferStatus(gl);
+				
 				gl.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT);
 				getShaderPrograms().values().forEach(ExtendedShaderProgram::run);
-				gl.glReadPixels(0, 0, canvasSize.width, canvasSize.height, GL.GL_BGRA, GL.GL_UNSIGNED_BYTE, this.data);
+				gl.glReadBuffer(GL.GL_COLOR_ATTACHMENT0);
+				gl.glReadPixels(0, 0, canvasSize.width, canvasSize.height, GL.GL_BGRA, GL.GL_UNSIGNED_BYTE, this.idData);
+				gl.glReadBuffer(GL.GL_COLOR_ATTACHMENT0 + 1);
+				gl.glReadPixels(0, 0, canvasSize.width, canvasSize.height, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, this.uvData);
 				gl.glBindFramebuffer(GL.GL_FRAMEBUFFER, 0);
 			}
 		}
 		
-		public final ByteBuffer getData() {
-			return this.data;
+		public final ByteBuffer getIdData() {
+			return this.idData;
+		}
+		
+		public final ByteBuffer getUVData() {
+			return this.uvData;
 		}
 		
 		public final ExtendedShaderProgram add(final String name, final ExtendedShaderProgram shaderProgram) {
@@ -301,27 +328,74 @@ public abstract class Scene implements GLEventListener, Serializable {
 			return geometry;
 		}
 		
-		public final Pair<Integer, Map.Entry<Integer, Object>> pick(final int x, final int y) {
-			if (getPicking().getData() == null) {
+		public final Pick pick(final int x, final int y) {
+			if (getPicking().getIdData() == null) {
 				return null;
 			}
 			
 			final Dimension wh = getCamera().getCanvasSize();
 			final int w = wh.width;
 			final int h = wh.height;
-			final int idUnderMouse = getPicking().getData().getInt((x + (h - 1 - y) * w) * Integer.BYTES) & 0x00FFFFFF;
-			final Entry<Integer, Object> entry = getPicking().getObjects().floorEntry(idUnderMouse);
+			final int i = x + (h - 1 - y) * w;
+			final int id = getPicking().getIdData().getInt(i * Integer.BYTES) & 0x00FFFFFF;
+			final Entry<Integer, Object> entry = getPicking().getObjects().floorEntry(id);
+			final int uv = this.getUVData().getInt(i * Integer.BYTES);
+			final float u = (uv & 0x0000FFFF) / 65536F;
+			final float v = ((uv >> 16) & 0x0000FFFF) / 65536F;
 			
-			return new Pair<>(idUnderMouse, entry);
+			this.pick.set(id, entry, u, v);
+			
+			return this.pick;
+		}
+		
+		/**
+		 * @author codistmonk (creation 2018-07-02)
+		 */
+		public final class Pick implements Serializable {
+			
+			private int id;
+			
+			private Map.Entry<Integer, Object> entry;
+			
+			private float u;
+			
+			private float v;
+			
+			public final void set(final int id, final Map.Entry<Integer, Object> entry, final float u, final float v) {
+				this.id = id;
+				this.entry = entry;
+				this.u = u;
+				this.v = v;
+			}
+			
+			public final void set(final Pick pick) {
+				this.set(pick.getId(), pick.getEntry(), pick.getU(), pick.getV());
+			}
+			
+			public final int getId() {
+				return this.id;
+			}
+			
+			public final Map.Entry<Integer, Object> getEntry() {
+				return this.entry;
+			}
+			
+			public final float getU() {
+				return this.u;
+			}
+			
+			public final float getV() {
+				return this.v;
+			}
+			
+			private static final long serialVersionUID = 2038320657797923347L;
+			
 		}
 		
 		private static final long serialVersionUID = 8979091140094393524L;
 		
 	}
 	
-	/**
-	 * {@value}.
-	 */
 	private static final long serialVersionUID = -8853467479921949191L;
 	
 }

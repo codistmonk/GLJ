@@ -4,6 +4,9 @@ import com.jogamp.common.util.cache.TempJarCache;
 
 import glj2.core.Camera.ProjectionType;
 
+import static multij.tools.Tools.check;
+import static multij.tools.Tools.debugError;
+
 import java.awt.Dimension;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -16,6 +19,7 @@ import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import javax.media.opengl.GL;
 import javax.media.opengl.GLCapabilities;
 import javax.media.opengl.GLProfile;
 import javax.media.opengl.awt.GLCanvas;
@@ -306,6 +310,35 @@ public final class GLJTools {
 		localTransform.setTranslation(vector);
 		
 		matrix.mul(localTransform);
+	}
+	
+	/**
+	 * @param gl
+	 * <br>Must not be null
+	 */
+	public static final void checkFrameBufferStatus(final GL gl) {
+		final int status = gl.glCheckFramebufferStatus(GL.GL_FRAMEBUFFER);
+		
+		switch (status) {
+		case GL.GL_FRAMEBUFFER_COMPLETE:
+			return;
+		case GL.GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
+			debugError("GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT");
+			break;
+		case GL.GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS:
+			debugError("GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS");
+			break;
+		case GL.GL_FRAMEBUFFER_INCOMPLETE_FORMATS:
+			debugError("GL_FRAMEBUFFER_INCOMPLETE_FORMATS");
+			break;
+		case GL.GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
+			debugError("GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT");
+			break;
+		default:
+			debugError("Unknown framebuffer status:", status);
+		}
+		
+		check(false);
 	}
 	
 }

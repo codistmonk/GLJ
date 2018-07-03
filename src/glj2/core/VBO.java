@@ -24,14 +24,20 @@ public final class VBO implements Serializable {
 	
 	private final int target;
 	
-	public VBO(final GL2ES2 gl, final Buffer data, final int usage) {
-		this(gl, GL.GL_ARRAY_BUFFER, data, usage);
+	private final int componentType;
+	
+	private final int componentCount;
+	
+	public VBO(final GL2ES2 gl, final Buffer data, final int componentType, final int componentCount, final int usage) {
+		this(gl, GL.GL_ARRAY_BUFFER, data, componentType, componentCount, usage);
 	}
 	
-	public VBO(final GL2ES2 gl, final int target, final Buffer data, final int usage) {
+	public VBO(final GL2ES2 gl, final int target, final Buffer data, final int componentType, final int componentCount, final int usage) {
 		this.gl = gl;
 		this.vbo = Buffers.newDirectIntBuffer(1);
 		this.target = target;
+		this.componentType = componentType;
+		this.componentCount = componentCount;
 		
 		gl.glGenBuffers(1, this.vbo);
 		this.bind();
@@ -45,6 +51,14 @@ public final class VBO implements Serializable {
 	
 	public final int getTarget() {
 		return this.target;
+	}
+	
+	public final int getComponentType() {
+		return this.componentType;
+	}
+	
+	public final int getComponentCount() {
+		return this.componentCount;
 	}
 	
 	public final VBO bind() {

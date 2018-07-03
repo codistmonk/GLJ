@@ -4,6 +4,7 @@ import glj2.core.GLJTools;
 import glj2.core.Geometry;
 import glj2.core.VAO;
 import glj2.core.VBO;
+import multij.tools.Tools;
 
 import java.awt.image.BufferedImage;
 import java.nio.Buffer;
@@ -18,6 +19,7 @@ import javax.media.opengl.GL3;
 import javax.vecmath.Matrix4f;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.nativewindow.awt.DirectDataBufferInt;
 
 /**
  * @author codistmonk (creation 2014-08-17)
@@ -26,7 +28,9 @@ public final class Mesh implements Geometry {
 	
 	private final Matrix4f position;
 	
-	private final List<Buffer> buffers;
+	private final List<FloatBuffer> buffers;
+	
+	private final List<VBO> vbos;
 	
 	private final VAO vao;
 	
@@ -38,14 +42,20 @@ public final class Mesh implements Geometry {
 	
 	private IntBuffer texture;
 	
+	private BufferedImage image;
+	
 	public Mesh(final GL3 gl, final int vertexCount) {
 		this.position = GLJTools.newIdentity();
 		this.buffers = new ArrayList<>();
+		this.vbos = new ArrayList<>();
 		this.vao = new VAO(gl);
 		this.vertexCount = vertexCount;
 		this.drawingMode = GL.GL_LINE_LOOP;
 		
-		this.buffers.add(Buffers.newDirectFloatBuffer(vertexCount * LOCATION_COMPONENTS));
+		for (int i = 0; i < COMPONENTS.length; ++i) {
+			this.buffers.add(null);
+			this.vbos.add(null);
+		}
 		
 		this.setStride(vertexCount);
 	}
@@ -54,17 +64,15 @@ public final class Mesh implements Geometry {
 		return this.texture.get(0);
 	}
 	
+	public final BufferedImage getImage() {
+		return this.image;
+	}
+	
 	public final Mesh setTexture(final BufferedImage image) {
+		this.image = image;
 		final int w = image.getWidth();
 		final int h = image.getHeight();
-		final IntBuffer data = Buffers.newDirectIntBuffer(w * h);
-		
-		for (int y = 0; y < h; ++y) {
-			for (int x = 0; x < w; ++x) {
-				data.put(image.getRGB(x, h - 1 - y));
-			}
-		}
-		
+		final IntBuffer data = ((DirectDataBufferInt) this.image.getRaster().getDataBuffer()).getData();
 		final GL3 gl = this.getVAO().getGL();
 		
 		if (this.texture == null) {
@@ -73,11 +81,23 @@ public final class Mesh implements Geometry {
 		
 		gl.glGenTextures(1, this.texture);
 		gl.glBindTexture(GL.GL_TEXTURE_2D, this.getTexture());
-		gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, w, h, 0, GL.GL_BGRA, GL.GL_UNSIGNED_BYTE, data.position(0));
+		gl.glTexImage2D(GL.GL_TEXTURE_2D, 0, GL.GL_RGBA, w, h, 0, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, data.position(0));
 		gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MAG_FILTER, GL.GL_NEAREST);
 		gl.glTexParameterf(GL.GL_TEXTURE_2D, GL.GL_TEXTURE_MIN_FILTER, GL.GL_NEAREST);
 		
 		return this;
+	}
+	
+	public final void updateImage() {
+		this.updateImage(0, 0, this.getImage().getWidth(), this.getImage().getHeight());
+	}
+	
+	public final void updateImage(final int x, final int y, final int w, final int h) {
+		final GL3 gl = this.getVAO().getGL();
+		final IntBuffer data = ((DirectDataBufferInt) this.image.getRaster().getDataBuffer()).getData();
+		
+		gl.glBindTexture(GL.GL_TEXTURE_2D, this.getTexture());
+		gl.glTexSubImage2D(GL.GL_TEXTURE_2D, 0, x, y, w, h, GL.GL_RGBA, GL.GL_UNSIGNED_BYTE, data.position(0)); // FIXME data position
 	}
 	
 	public final int getDrawingMode() {
@@ -95,24 +115,65 @@ public final class Mesh implements Geometry {
 		return this.position;
 	}
 	
+	public final Mesh setLocations(final FloatBuffer data, final VBO vbo) {
+		this.buffers.set(LOCATIONS, data);
+		this.vbos.set(LOCATIONS, vbo);
+		
+		return this;
+	}
+	
 	public final FloatBuffer getLocations() {
-		return (FloatBuffer) this.buffers.get(LOCATIONS);
+		return this.getData(LOCATIONS);
+	}
+	
+	public final VBO getLocationsVBO() {
+		return this.getVBO(LOCATIONS);
+	}
+	
+	public final VBO getColorsVBO() {
+		return this.getVBO(COLORS);
+	}
+	
+	public final VBO getUVsVBO() {
+		return this.getVBO(UVS);
+	}
+	
+	public final VBO getVBO(final int index) {
+		if (this.vbos.get(index) == null) {
+			this.vbos.set(index, newVBO(this.getVAO().getGL(), this.buffers.get(index).position(0), index));
+		}
+		
+		return this.vbos.get(index);
+	}
+	
+	public final Mesh setColors(final FloatBuffer data, final VBO vbo) {
+		this.buffers.set(COLORS, data);
+		this.vbos.set(COLORS, vbo);
+		
+		return this;
+	}
+	
+	public final Mesh setUVs(final FloatBuffer data, final VBO vbo) {
+		this.buffers.set(UVS, data);
+		this.vbos.set(UVS, vbo);
+		
+		return this;
 	}
 	
 	public final FloatBuffer getColors() {
-		if (this.buffers.size() <= 1) {
-			this.buffers.add(Buffers.newDirectFloatBuffer(this.getVertexCount() * COLOR_COMPONENTS));
-		}
-		
-		return (FloatBuffer) this.buffers.get(COLORS);
+		return this.getData(COLORS);
 	}
 	
 	public final FloatBuffer getUVs() {
-		if (this.buffers.size() <= 1) {
-			this.buffers.add(Buffers.newDirectFloatBuffer(this.getVertexCount() * UV_COMPONENTS));
+		return this.getData(UVS);
+	}
+	
+	public final FloatBuffer getData(final int index) {
+		if (this.buffers.get(index) == null) {
+			this.buffers.set(index, Buffers.newDirectFloatBuffer(this.getVertexCount() * COMPONENTS[index]));
 		}
 		
-		return (FloatBuffer) this.buffers.get(UVS);
+		return (FloatBuffer) this.buffers.get(index);
 	}
 	
 	public final int getVertexCount() {
@@ -125,12 +186,7 @@ public final class Mesh implements Geometry {
 		this.getColors().put(new float[] { r, g, b, a });
 		
 		if (!this.getLocations().hasRemaining()) {
-			final GL3 gl = this.getVAO().getGL();
-			
-			this.getVAO().bind(true)
-					.addAttribute3f(new VBO(gl, this.getLocations().position(0), GL.GL_STATIC_DRAW))
-					.addAttribute4f(new VBO(gl, this.getColors().position(0), GL.GL_STATIC_DRAW))
-					.bind(false);
+			this.setupVAO();
 		}
 		
 		return this;
@@ -139,15 +195,24 @@ public final class Mesh implements Geometry {
 	public final Mesh addVertex(final float x, final float y, final float z,
 			final float u, final float v) {
 		this.getLocations().put(new float[] { x, y, z });
-		this.getColors().put(new float[] { u, v });
+		this.getUVs().put(new float[] { u, v });
 		
 		if (!this.getLocations().hasRemaining()) {
-			final GL3 gl = this.getVAO().getGL();
-			
-			this.getVAO().bind(true)
-			.addAttribute3f(new VBO(gl, this.getLocations().position(0), GL.GL_STATIC_DRAW))
-			.addAttribute2f(new VBO(gl, this.getUVs().position(0), GL.GL_STATIC_DRAW))
-			.bind(false);
+			this.setupVAO();
+		}
+		
+		return this;
+	}
+	
+	public final Mesh addVertex(final float x, final float y, final float z,
+			final float r, final float g, final float b, final float a,
+			final float u, final float v) {
+		this.getLocations().put(new float[] { x, y, z });
+		this.getColors().put(new float[] { r, g, b, a });
+		this.getUVs().put(new float[] { u, v });
+		
+		if (!this.getLocations().hasRemaining()) {
+			this.setupVAO();
 		}
 		
 		return this;
@@ -233,6 +298,24 @@ public final class Mesh implements Geometry {
 		}
 	}
 	
+	public final Mesh setupVAO() {
+		{
+			final VAO vao = this.getVAO();
+			
+			vao.bind(true);
+			
+			for (int i = 0; i < this.buffers.size(); ++i) {
+				if (this.buffers.get(i) != null) {
+					vao.addAttribute(this.getVBO(i));
+				}
+			}
+			
+			vao.bind(false);
+		}
+		
+		return this;
+	}
+	
 	private final void maybeActivateTexture(final GL3 gl) {
 		if (this.texture != null) {
 			gl.glActiveTexture(GL.GL_TEXTURE0 + 0);
@@ -241,6 +324,10 @@ public final class Mesh implements Geometry {
 	}
 	
 	private final void updateVBO(final int vboIndex, final int components, final int start, final int end, final Buffer data) {
+		if (this.getVAO().getVbos().size() <= vboIndex) {
+			Tools.debugError(this, this.getVAO(), this.getVAO().getVbos().size(), vboIndex);
+		}
+		
 		final VBO vbo = this.getVAO().getVbos().get(vboIndex);
 		final int vertexStride = Float.BYTES * components;
 		final GL2ES2 gl = vbo.getGL();
@@ -261,7 +348,15 @@ public final class Mesh implements Geometry {
 	
 	public static final int COLORS = 1;
 	
-	public static final int UVS = 1;
+	public static final int UVS = 2;
+	
+	private static final int[] COMPONENTS = {
+			LOCATION_COMPONENTS, COLOR_COMPONENTS, UV_COMPONENTS
+	};
+	
+	public static final VBO newVBO(final GL2ES2 gl, final Buffer data, final int type) {
+		return new VBO(gl, data, GL.GL_FLOAT, COMPONENTS[type], GL.GL_STATIC_DRAW);
+	}
 	
 	public static final Mesh newTriangle(final GL3 gl) {
 		return new Mesh(gl, 3).setDrawingMode(GL.GL_TRIANGLES);
