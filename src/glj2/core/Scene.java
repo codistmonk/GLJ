@@ -4,6 +4,7 @@ import com.jogamp.common.nio.Buffers;
 import com.jogamp.opengl.util.Animator;
 
 import static glj2.core.GLJTools.checkFrameBufferStatus;
+import static multij.tools.MathTools.lelt;
 import static multij.tools.Tools.ints;
 
 import java.awt.Dimension;
@@ -329,23 +330,44 @@ public abstract class Scene implements GLEventListener, Serializable {
 		}
 		
 		public final Pick pick(final int x, final int y) {
+			return this.pick(x, y, this.pick);
+		}
+		
+		public final Pick pick(final int x, final int y, final Pick result) {
 			if (getPicking().getIdData() == null) {
 				return null;
 			}
 			
+			{
+				final Dimension wh = getCamera().getCanvasSize();
+				final int w = wh.width;
+				final int h = wh.height;
+				
+				if (!lelt(0, x, w) || !lelt(0, y, h)) {
+					return null;
+				}
+			}
+			
+			final int i = this.computeIndex(x, y);
+			final int uv = this.getUV(i);
+			final float u = unpackU(uv);
+			final float v = unpackV(uv);
+			final int id = getPicking().getIdData().getInt(i * Integer.BYTES) & 0x00FFFFFF;
+			final Entry<Integer, Object> entry = getPicking().getObjects().floorEntry(id);
+			
+			return result.set(id, entry, u, v);
+		}
+		
+		public int getUV(final int index) {
+			return this.getUVData().getInt(index * Integer.BYTES);
+		}
+		
+		public final int computeIndex(final int x, final int y) {
 			final Dimension wh = getCamera().getCanvasSize();
 			final int w = wh.width;
 			final int h = wh.height;
-			final int i = x + (h - 1 - y) * w;
-			final int id = getPicking().getIdData().getInt(i * Integer.BYTES) & 0x00FFFFFF;
-			final Entry<Integer, Object> entry = getPicking().getObjects().floorEntry(id);
-			final int uv = this.getUVData().getInt(i * Integer.BYTES);
-			final float u = (uv & 0x0000FFFF) / 65536F;
-			final float v = ((uv >> 16) & 0x0000FFFF) / 65536F;
 			
-			this.pick.set(id, entry, u, v);
-			
-			return this.pick;
+			return x + (h - 1 - y) * w;
 		}
 		
 		/**
@@ -361,15 +383,25 @@ public abstract class Scene implements GLEventListener, Serializable {
 			
 			private float v;
 			
-			public final void set(final int id, final Map.Entry<Integer, Object> entry, final float u, final float v) {
+			{
+				this.set(null);
+			}
+			
+			public final Pick set(final int id, final Map.Entry<Integer, Object> entry, final float u, final float v) {
 				this.id = id;
 				this.entry = entry;
 				this.u = u;
 				this.v = v;
+				
+				return this;
 			}
 			
-			public final void set(final Pick pick) {
-				this.set(pick.getId(), pick.getEntry(), pick.getU(), pick.getV());
+			public final Pick set(final Pick pick) {
+				if (pick == null) {
+					return this.set(-1, null, Float.NaN, Float.NaN);
+				}
+				
+				return this.set(pick.getId(), pick.getEntry(), pick.getU(), pick.getV());
 			}
 			
 			public final int getId() {
@@ -378,6 +410,15 @@ public abstract class Scene implements GLEventListener, Serializable {
 			
 			public final Map.Entry<Integer, Object> getEntry() {
 				return this.entry;
+			}
+			
+			@SuppressWarnings("unchecked")
+			public final <T> T getObject() {
+				return this.getEntry() == null ? null : (T) this.getEntry().getValue();
+			}
+			
+			public final int getIndexInObject() {
+				return this.getEntry() == null ? -1 : this.getId() - this.getEntry().getKey();
 			}
 			
 			public final float getU() {
@@ -397,5 +438,13 @@ public abstract class Scene implements GLEventListener, Serializable {
 	}
 	
 	private static final long serialVersionUID = -8853467479921949191L;
+	
+	public static final float unpackU(final int uv) {
+		return (uv & 0x0000FFFF) / 65536F;
+	}
+	
+	public static final float unpackV(final int uv) {
+		return ((uv >> 16) & 0x0000FFFF) / 65536F;
+	}
 	
 }
