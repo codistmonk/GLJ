@@ -26,6 +26,7 @@ import javax.media.opengl.GL4;
 import javax.vecmath.Vector3d;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.nativewindow.awt.DirectDataBufferInt;
 
 import glj2.core.VBO;
 import multij.tools.Manifold;
@@ -327,6 +328,18 @@ public final class Solid implements Serializable {
 		});
 	}
 	
+	public final BufferedImage getTexture(final int tileSide) {
+		BufferedImage result = this.getAttribute(TEXTURE);
+		
+		if (result == null) {
+			result = DirectDataBufferInt.createBufferedImage(tileSide * 3 , tileSide * 2, BufferedImage.TYPE_INT_ARGB, null, null);
+			
+			this.setAttribute(TEXTURE, result);
+		}
+		
+		return result;
+	}
+	
 	public final Mesh createFacesGeometry(final GL4 gl) {
 		final Manifold topo = this.getTopology();
 		final Mesh result = new Mesh(gl, topo.getDartCount())
@@ -334,7 +347,7 @@ public final class Solid implements Serializable {
 				.setStride(this.getAttribute(STRIDE))
 				.setLocations(this.getLocations(), this.getLocationsVBO(gl));
 		
-		final BufferedImage image = this.getAttribute("Texture");
+		final BufferedImage image = this.getAttribute(TEXTURE);
 		
 		if (image != null) {
 			result.setTexture(image);
@@ -377,6 +390,8 @@ public final class Solid implements Serializable {
 	public static final String STRIDE = "Stride";
 
 	public static final String DRAWING_MODE = "DrawingMode";
+	
+	public static final String TEXTURE = "Texture";
 	
 	public static final void addVertexTo(final FloatBuffer data, final Vector3d xyz) {
 		data.put((float) xyz.x);

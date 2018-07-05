@@ -19,7 +19,6 @@ import static multij.tools.Tools.debugError;
 import static multij.tools.Tools.debugPrint;
 
 import com.jogamp.common.nio.Buffers;
-import com.jogamp.nativewindow.awt.DirectDataBufferInt;
 import com.jogamp.opengl.util.glsl.ShaderCode;
 
 import java.awt.BasicStroke;
@@ -185,7 +184,7 @@ public final class Demo5 {
 						this.pick.set(pick);
 						this.mouse.setLocation(e.getPoint());
 					}
-
+					
 					private final AffineTransform computeTransition(final float u1, final float v1, final float u2, final float v2) {
 						final int i1 = (int) (u1 * 3F);
 						final int j1 = (int) (v1 * 2F);
@@ -481,13 +480,13 @@ public final class Demo5 {
 					final int k = 4;
 					
 					for (int i = 0; i < k; ++i) {
-						Quads.subdivideAllEdges(s);
+						Quads.subdivide(s, true);
 					}
 					
 					if (true) {
 						final int w = 1024;
 						final int h = w;
-						final BufferedImage image = DirectDataBufferInt.createBufferedImage(w * 3, h * 2, BufferedImage.TYPE_INT_ARGB, null, null);
+						final BufferedImage image = s.getTexture(w);
 						
 						{
 							final Graphics2D gr = (Graphics2D) image.getGraphics();
@@ -588,8 +587,10 @@ public final class Demo5 {
 		return square(v1.x - v2.x) + square(v1.y - v2.y) + square(v1.z - v2.z);
 	}
 	
-	public static final Vector3d midn(final Vector3d v1, final Vector3d v2) {
-		return normalize(mid(v1, v2));
+	public static final Vector3d mid(final Vector3d v1, final Vector3d v2, final boolean normalize) {
+		final Vector3d m = mid(v1, v2);
+		
+		return normalize ? normalize(m) : m;
 	}
 	
 	public static final Vector3d normalize(final Vector3d v) {
@@ -706,7 +707,7 @@ public final class Demo5 {
 			return s;
 		}
 		
-		public static final void subdivideAllEdges(final Solid s) {
+		public static final void subdivide(final Solid s, final boolean normalize) {
 			final Collection<Vector3d> initialVertices = new HashSet<>(s.getVertices());
 			
 			Triangles.cutAllEdges(s);
@@ -734,10 +735,10 @@ public final class Demo5 {
 				final Vector3d vb = s.getVertex(b);
 				final Vector3d vc = s.getVertex(c);
 				final Vector3d vd = s.getVertex(d);
-				final Vector3d va1 = midn(va, vb);
-				final Vector3d vb1 = midn(vb, vc);
-				final Vector3d vc1 = midn(vc, vd);
-				final Vector3d vd1 = midn(vd, va);
+				final Vector3d va1 = mid(va, vb, normalize);
+				final Vector3d vb1 = mid(vb, vc, normalize);
+				final Vector3d vc1 = mid(vc, vd, normalize);
+				final Vector3d vd1 = mid(vd, va, normalize);
 				
 				s.setVertex(a1, va1);
 				s.setVertex(b1, vb1);
@@ -754,7 +755,7 @@ public final class Demo5 {
 				topo.setCycle(nc1, c1, d, opposite(nd1));
 				topo.setCycle(nd1, d1, a, opposite(na1));
 				
-				s.setVertex(na1, midn(va1, vc1));
+				s.setVertex(na1, mid(va1, vc1, normalize));
 				
 				check(topo.isValid());
 				
@@ -842,7 +843,7 @@ public final class Demo5 {
 				}
 			});
 			
-			final Vector3d xyz = midn(s.getVertex(edge[0]), s.getVertex(opposite(edge[0])));
+			final Vector3d xyz = mid(s.getVertex(edge[0]), s.getVertex(opposite(edge[0])), true);
 			
 			final int newDart = topo.cutEdge(edge[0]);
 			
@@ -884,9 +885,9 @@ public final class Demo5 {
 				final int b1c1 = topo.cutFace(a1b1, c);
 				final int c1a1 = topo.cutFace(b1c1, a);
 				
-				s.setVertex(a1b1, midn(va, vb));
-				s.setVertex(b1c1, midn(vb, vc));
-				s.setVertex(c1a1, midn(vc, va));
+				s.setVertex(a1b1, mid(va, vb, true));
+				s.setVertex(b1c1, mid(vb, vc, true));
+				s.setVertex(c1a1, mid(vc, va, true));
 			});
 			
 			check(topo.isValid());
@@ -905,7 +906,7 @@ public final class Demo5 {
 				
 				s.setVertex(e, ve);
 				s.setVertex(f, vf);
-				s.setVertex(g, midn(ve, vf));
+				s.setVertex(g, mid(ve, vf, true));
 			});
 			
 			check(topo.isValid());
