@@ -24,7 +24,6 @@ import com.jogamp.opengl.util.glsl.ShaderCode;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -60,7 +59,6 @@ import javax.vecmath.Vector3d;
 import multij.primitivelists.IntList;
 import multij.swing.MouseHandler;
 import multij.swing.SwingTools;
-import multij.tools.Canvas;
 import multij.tools.IllegalInstantiationException;
 import multij.tools.Manifold;
 
@@ -97,8 +95,6 @@ public final class Demo5 {
 					
 					private final Pick pick = getPicking().new Pick();
 					
-					private final Canvas can = new Canvas();
-					
 					@Override
 					public final void mousePressed(final MouseEvent e) {
 						if (isLeftMouseButton(e)) {
@@ -124,52 +120,6 @@ public final class Demo5 {
 						final Pick pick = getPicking().pick(e.getX(), e.getY());
 						final Solid object = this.pick.getObject();
 						
-						if (false) {
-							if (object == pick.getObject() && 0 <= this.mouse.x) {
-								final int w = getCamera().getCanvasSize().width;
-								final int h = getCamera().getCanvasSize().height;
-								
-								this.can.setFormat(w, h).clear(new Color(0, true));
-								
-								{
-									final Graphics2D gr = this.can.getGraphics();
-									gr.setColor(Color.BLACK);
-									gr.setStroke(new BasicStroke(10F));
-									gr.drawLine(this.mouse.x, this.mouse.y, e.getX(), e.getY());
-								}
-								
-								final Mesh mesh = object.getAttribute(Solid.FACES_GEOMETRY);
-								final BufferedImage image = mesh.getImage();
-								final Graphics gr = image.getGraphics();
-								
-								for (int yIn = 0; yIn < h; ++yIn) {
-									for (int xIn = 0; xIn < w; ++xIn) {
-										final int rgba = this.can.getImage().getRGB(xIn, yIn);
-										
-										if (rgba != 0) {
-											final int uv = getPicking().getUV(getPicking().computeIndex(xIn, yIn));
-											final float u = unpackU(uv);
-											final float v = unpackV(uv);
-											final int xOut = (int) (u * image.getWidth());
-											final int yOut = (int) (v * image.getHeight());
-											gr.setColor(new Color(rgba));
-											gr.fillOval(xOut - 15, yOut - 15, 31, 31);
-//											image.setRGB(xOut, yOut, rgba);
-										}
-									}
-								}
-								
-								gr.dispose();
-								
-								this.updateImage(mesh);
-							}
-							
-							this.mouse.setLocation(e.getPoint());
-							this.pick.set(pick);
-							
-							return;
-						}
-						
 						if (pick != null && pick.getEntry() != null && object == pick.getEntry().getValue()) {
 							final Mesh mesh = object.getAttribute(Solid.FACES_GEOMETRY);
 							final BufferedImage image = mesh.getImage();
@@ -179,242 +129,30 @@ public final class Demo5 {
 							final float v1 = this.pick.getV();
 							final float u2 = pick.getU();
 							final float v2 = pick.getV();
-							final int i1 = (int) (u1 * 3F);
-							final int j1 = (int) (v1 * 2F);
-							final int i2 = (int) (u2 * 3F);
-							final int j2 = (int) (v2 * 2F);
 							
-							check(lelt(0, i1, 3) && lelt(0, j1, 2) && lelt(0, i2, 3) && lelt(0, j2, 2));
+							final AffineTransform t = computeTransition(u1, v1, u2, v2);
+							final Rectangle clip13 = new Rectangle((int) (u1 * 3F) * w / 3, (int) (v1 * 2F) * h / 2, w / 3, h / 2);
+							final Rectangle clip24 = new Rectangle((int) (u2 * 3F) * w / 3, (int) (v2 * 2F) * h / 2, w / 3, h / 2);
 							
-							float u3 = u2;
-							float v3 = v2;
-							float u4 = u1;
-							float v4 = v1;
-							final Rectangle clip13 = new Rectangle(0, 0, w / 3, h / 2);
-							final Rectangle clip24 = new Rectangle(0, 0, w / 3, h / 2);
-							final AffineTransform t = new AffineTransform();
-							final Point2D.Float p1 = new Point2D.Float(u1, v1);
-							final Point2D.Float p2 = new Point2D.Float(u2, v2);
-							final Point2D.Float p3 = (Point2D.Float) p2.clone();
-							final Point2D.Float p4 = (Point2D.Float) p1.clone();
+							final Point2D.Float uv1 = new Point2D.Float(u1, v1);
+							final Point2D.Float uv2 = new Point2D.Float(u2, v2);
+							final Point2D.Float uv3 = (Point2D.Float) uv2.clone();
+							final Point2D.Float uv4 = (Point2D.Float) uv1.clone();
 							
-							t.scale(1.0 / 3.0, 1.0 / 2.0);
-							
-							if (i1 == 0) {
-								if (j1 == 0) {
-									clip13.setLocation(0, 0);
-									
-									if (i2 == 0) {
-										if (j2 == 0) {
-											// (0 0) -> (0 0)
-											clip24.setLocation(0, 0);
-										} else {
-											// (0 0) -> (0 1)
-											t.rotate(PI, 1.0 / 2.0, 1.0 + 1.0 / 2.0);
-											clip24.setLocation(0, h / 2);
-										}
-									} else if (i2 == 1) {
-										if (j2 == 0) {
-											// (0 0) -> (1 0)
-											clip24.setLocation(w / 3, 0);
-										} else {
-											// (0 0) -> (1 1)
-											t.translate(-2.0, -1.0);
-											t.rotate(-PI / 2.0, 1.0 + 1.0 / 2.0, 1.0 + 1.0 / 2.0);
-											clip24.setLocation(w / 3, h / 2);
-										}
-									} else {
-										if (j2 == 0) {
-											// (0 0) -> (2 0)
-											check(false);
-										} else {
-											// (0 0) -> (2 1)
-											t.translate(-2.0, -2.0);
-											clip24.setLocation(2 * w / 3, h / 2);
-										}
-									}
-								} else {
-									clip13.setLocation(0, h / 2);
-									
-									if (i2 == 0) {
-										if (j2 == 0) {
-											// (0 1) -> (0 0)
-											t.translate(0.0, 2.0);
-											t.rotate(PI, 1.0 / 2.0, 1.0 / 2.0);
-											clip24.setLocation(0, 0);
-										} else {
-											// (0 1) -> (0 1)
-											clip24.setLocation(0, h / 2);
-										}
-									} else if (i2 == 1) {
-										if (j2 == 0) {
-											// (0 1) -> (1 0)
-											t.translate(-2.0, 1.0);
-											t.rotate(-PI / 2.0, 1.0 + 1.0 / 2.0, 1.0 / 2.0);
-											clip24.setLocation(w / 3, 0);
-										} else {
-											// (0 1) -> (1 1)
-											clip24.setLocation(w / 3, h / 2);
-										}
-									} else {
-										if (j2 == 0) {
-											// (0 1) -> (2 0)
-											t.translate(-2.0, 0.0);
-											clip24.setLocation(2 * w / 3, 0);
-										} else {
-											// (0 1) -> (2 1)
-											check(false);
-										}
-									}
-								}
-							} else if (i1 == 1) {
-								if (j1 == 0) {
-									clip13.setLocation(w / 3, 0);
-									
-									if (i2 == 0) {
-										if (j2 == 0) {
-											// (1 0) -> (0 0)
-											clip24.setLocation(0, 0);
-										} else {
-											// (1 0) -> (0 1)
-											t.translate(1.0, 0.0);
-											t.rotate(PI / 2.0, 1.0 / 2.0, 1.0 + 1.0 / 2.0);
-											clip24.setLocation(0, h / 2);
-										}
-									} else if (i2 == 1) {
-										if (j2 == 0) {
-											// (1 0) -> (1 0)
-											clip24.setLocation(w / 3, 0);
-										} else {
-											// (1 0) -> (1 1)
-											check(false);
-										}
-									} else {
-										if (j2 == 0) {
-											// (1 0) -> (2 0)
-											clip24.setLocation(2 * w / 3, 0);
-										} else {
-											// (1 0) -> (2 1)
-											t.translate(-1.0, -2.0);
-											t.rotate(PI / 2.0, 2.0 + 1.0 / 2.0, 1.0 + 1.0 / 2.0);
-											clip24.setLocation(2 * w / 3, h / 2);
-										}
-									}
-								} else {
-									clip13.setLocation(w / 3, h / 2);
-									
-									if (i2 == 0) {
-										if (j2 == 0) {
-											// (1 1) -> (0 0)
-											t.translate(1.0, 2.0);
-											t.rotate(PI / 2.0, 1.0 / 2.0, 1.0 / 2.0);
-											clip24.setLocation(0, 0);
-										} else {
-											// (1 1) -> (0 1)
-											clip24.setLocation(0, h / 2);
-										}
-									} else if (i2 == 1) {
-										if (j2 == 0) {
-											// (1 1) -> (1 0)
-											check(false);
-										} else {
-											// (1 1) -> (1 1)
-											clip24.setLocation(w / 3, h / 2);
-										}
-									} else {
-										if (j2 == 0) {
-											// (1 1) -> (2 0)
-											t.translate(-1.0, 0.0);
-											t.rotate(PI / 2.0, 2.0 + 1.0 / 2.0, 1.0 / 2.0);
-											clip24.setLocation(2 * w / 3, 0);
-										} else {
-											// (1 1) -> (2 1)
-											clip24.setLocation(2 * w / 3, h / 2);
-										}
-									}
-								}
-							} else {
-								if (j1 == 0) {
-									clip13.setLocation(2 * w / 3, 0);
-									
-									if (i2 == 0) {
-										if (j2 == 0) {
-											// (2 0) -> (0 0)
-											check(false);
-										} else {
-											// (2 0) -> (0 1)
-											t.translate(2.0, 0.0);
-											clip24.setLocation(0, h / 2);
-										}
-									} else if (i2 == 1) {
-										if (j2 == 0) {
-											// (2 0) -> (1 0)
-											clip24.setLocation(w / 3, 0);
-										} else {
-											// (2 0) -> (1 1)
-											t.translate(2.0, -1.0);
-											t.rotate(-PI / 2.0, 1.0 + 1.0 / 2.0, 1.0 + 1.0 / 2.0);
-											clip24.setLocation(w / 3, h / 2);
-										}
-									} else {
-										if (j2 == 0) {
-											// (2 0) -> (2 0)
-											clip24.setLocation(2 * w / 3, 0);
-										} else {
-											// (2 0) -> (2 1)
-											t.translate(0.0, -2.0);
-											t.rotate(PI, 2.0 + 1.0 / 2.0, 1.0 + 1.0 / 2.0);
-											clip24.setLocation(2 * w / 3, h / 2);
-										}
-									}
-								} else {
-									clip13.setLocation(2 * w / 3, h / 2);
-									
-									if (i2 == 0) {
-										if (j2 == 0) {
-											// (2 1) -> (0 0)
-											t.translate(2.0, 2.0);
-											clip24.setLocation(0, 0);
-										} else {
-											// (2 1) -> (0 1)
-											check(false);
-										}
-									} else if (i2 == 1) {
-										if (j2 == 0) {
-											// (2 1) -> (1 0)
-											t.translate(2.0, 1.0);
-											t.rotate(-PI / 2.0, 1.0 + 1.0 / 2.0, 1.0 / 2.0);
-											clip24.setLocation(w / 3, 0);
-										} else {
-											// (2 1) -> (1 1)
-											clip24.setLocation(w / 3, h / 2);
-										}
-									} else {
-										if (j2 == 0) {
-											// (2 1) -> (2 0)
-											t.rotate(PI, 2.0 + 1.0 / 2.0, 1.0 / 2.0);
-											clip24.setLocation(2 * w / 3, 0);
-										} else {
-											// (2 1) -> (2 1)
-											clip24.setLocation(2 * w / 3, h / 2);
-										}
-									}
+							{
+								t.transform(uv2, uv3);
+								
+								try {
+									t.inverseTransform(uv1, uv4);
+								} catch (final NoninvertibleTransformException exception) {
+									exception.printStackTrace();
 								}
 							}
 							
-							t.scale(3.0, 2.0);
-							t.transform(p2, p3);
-							
-							try {
-								t.inverseTransform(p1, p4);
-							} catch (final NoninvertibleTransformException exception) {
-								exception.printStackTrace();
-							}
-							
-							u3 = p3.x;
-							v3 = p3.y;
-							u4 = p4.x;
-							v4 = p4.y;
+							final float u3 = uv3.x;
+							final float v3 = uv3.y;
+							final float u4 = uv4.x;
+							final float v4 = uv4.y;
 							
 							final int x1 = (int) (u1 * w);
 							final int y1 = (int) (v1 * h);
@@ -425,25 +163,204 @@ public final class Demo5 {
 							final int x4 = (int) (u4 * w);
 							final int y4 = (int) (v4 * h);
 							
-							final Graphics2D gr = image.createGraphics();
-							gr.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-							gr.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-							gr.setStroke(new BasicStroke(9F, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-							gr.setColor(Color.BLACK);
-//							gr.drawLine(x1, y1, x2, y2);
-							
-							gr.setClip(clip13);
-							gr.drawLine(x1, y1, x3, y3);
-							gr.setClip(clip24);
-							gr.drawLine(x2, y2, x4, y4);
-							
-							gr.dispose();
+							{
+								final Graphics2D gr = image.createGraphics();
+								
+								gr.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+								gr.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+								gr.setStroke(new BasicStroke(9F, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+								gr.setColor(Color.BLACK);
+								
+								gr.setClip(clip13);
+								gr.drawLine(x1, y1, x3, y3);
+								gr.setClip(clip24);
+								gr.drawLine(x2, y2, x4, y4);
+								
+								gr.dispose();
+							}
 							
 							this.updateImage(mesh);
 						}
 						
 						this.pick.set(pick);
 						this.mouse.setLocation(e.getPoint());
+					}
+
+					private final AffineTransform computeTransition(final float u1, final float v1, final float u2, final float v2) {
+						final int i1 = (int) (u1 * 3F);
+						final int j1 = (int) (v1 * 2F);
+						final int i2 = (int) (u2 * 3F);
+						final int j2 = (int) (v2 * 2F);
+						
+						check(lelt(0, i1, 3) && lelt(0, j1, 2) && lelt(0, i2, 3) && lelt(0, j2, 2));
+						
+						final AffineTransform result = new AffineTransform();
+						
+						result.scale(1.0 / 3.0, 1.0 / 2.0);
+						
+						if (i1 == 0) {
+							if (j1 == 0) {
+								if (i2 == 0) {
+									if (j2 == 0) {
+										// (0 0) -> (0 0)
+									} else {
+										// (0 0) -> (0 1)
+										result.rotate(PI, 1.0 / 2.0, 1.0 + 1.0 / 2.0);
+									}
+								} else if (i2 == 1) {
+									if (j2 == 0) {
+										// (0 0) -> (1 0)
+									} else {
+										// (0 0) -> (1 1)
+										result.translate(-2.0, -1.0);
+										result.rotate(-PI / 2.0, 1.0 + 1.0 / 2.0, 1.0 + 1.0 / 2.0);
+									}
+								} else {
+									if (j2 == 0) {
+										// (0 0) -> (2 0)
+										check(false);
+									} else {
+										// (0 0) -> (2 1)
+										result.translate(-2.0, -2.0);
+									}
+								}
+							} else {
+								if (i2 == 0) {
+									if (j2 == 0) {
+										// (0 1) -> (0 0)
+										result.translate(0.0, 2.0);
+										result.rotate(PI, 1.0 / 2.0, 1.0 / 2.0);
+									} else {
+										// (0 1) -> (0 1)
+									}
+								} else if (i2 == 1) {
+									if (j2 == 0) {
+										// (0 1) -> (1 0)
+										result.translate(-2.0, 1.0);
+										result.rotate(-PI / 2.0, 1.0 + 1.0 / 2.0, 1.0 / 2.0);
+									} else {
+										// (0 1) -> (1 1)
+									}
+								} else {
+									if (j2 == 0) {
+										// (0 1) -> (2 0)
+										result.translate(-2.0, 0.0);
+									} else {
+										// (0 1) -> (2 1)
+										check(false);
+									}
+								}
+							}
+						} else if (i1 == 1) {
+							if (j1 == 0) {
+								if (i2 == 0) {
+									if (j2 == 0) {
+										// (1 0) -> (0 0)
+									} else {
+										// (1 0) -> (0 1)
+										result.translate(1.0, 0.0);
+										result.rotate(PI / 2.0, 1.0 / 2.0, 1.0 + 1.0 / 2.0);
+									}
+								} else if (i2 == 1) {
+									if (j2 == 0) {
+										// (1 0) -> (1 0)
+									} else {
+										// (1 0) -> (1 1)
+										check(false);
+									}
+								} else {
+									if (j2 == 0) {
+										// (1 0) -> (2 0)
+									} else {
+										// (1 0) -> (2 1)
+										result.translate(-1.0, -2.0);
+										result.rotate(PI / 2.0, 2.0 + 1.0 / 2.0, 1.0 + 1.0 / 2.0);
+									}
+								}
+							} else {
+								if (i2 == 0) {
+									if (j2 == 0) {
+										// (1 1) -> (0 0)
+										result.translate(1.0, 2.0);
+										result.rotate(PI / 2.0, 1.0 / 2.0, 1.0 / 2.0);
+									} else {
+										// (1 1) -> (0 1)
+									}
+								} else if (i2 == 1) {
+									if (j2 == 0) {
+										// (1 1) -> (1 0)
+										check(false);
+									} else {
+										// (1 1) -> (1 1)
+									}
+								} else {
+									if (j2 == 0) {
+										// (1 1) -> (2 0)
+										result.translate(-1.0, 0.0);
+										result.rotate(PI / 2.0, 2.0 + 1.0 / 2.0, 1.0 / 2.0);
+									} else {
+										// (1 1) -> (2 1)
+									}
+								}
+							}
+						} else {
+							if (j1 == 0) {
+								if (i2 == 0) {
+									if (j2 == 0) {
+										// (2 0) -> (0 0)
+										check(false);
+									} else {
+										// (2 0) -> (0 1)
+										result.translate(2.0, 0.0);
+									}
+								} else if (i2 == 1) {
+									if (j2 == 0) {
+										// (2 0) -> (1 0)
+									} else {
+										// (2 0) -> (1 1)
+										result.translate(2.0, -1.0);
+										result.rotate(-PI / 2.0, 1.0 + 1.0 / 2.0, 1.0 + 1.0 / 2.0);
+									}
+								} else {
+									if (j2 == 0) {
+										// (2 0) -> (2 0)
+									} else {
+										// (2 0) -> (2 1)
+										result.translate(0.0, -2.0);
+										result.rotate(PI, 2.0 + 1.0 / 2.0, 1.0 + 1.0 / 2.0);
+									}
+								}
+							} else {
+								if (i2 == 0) {
+									if (j2 == 0) {
+										// (2 1) -> (0 0)
+										result.translate(2.0, 2.0);
+									} else {
+										// (2 1) -> (0 1)
+										check(false);
+									}
+								} else if (i2 == 1) {
+									if (j2 == 0) {
+										// (2 1) -> (1 0)
+										result.translate(2.0, 1.0);
+										result.rotate(-PI / 2.0, 1.0 + 1.0 / 2.0, 1.0 / 2.0);
+									} else {
+										// (2 1) -> (1 1)
+									}
+								} else {
+									if (j2 == 0) {
+										// (2 1) -> (2 0)
+										result.rotate(PI, 2.0 + 1.0 / 2.0, 1.0 / 2.0);
+									} else {
+										// (2 1) -> (2 1)
+									}
+								}
+							}
+						}
+						
+						result.scale(3.0, 2.0);
+						
+						return result;
 					}
 					
 					public void updateImage(final Mesh mesh) {
@@ -560,26 +477,17 @@ public final class Demo5 {
 					.addUniformSetters(new UniformMPV(this.getProjectionView().getMatrix()));
 				
 				{
-//					final Solid s = Triangles.newRegularTetrahedron(new Solid());
 					final Solid s = Quads.newCube(new Solid());
 					final int k = 4;
 					
-					if (false) {
-						for (int i = 0; i < ((1 << (2 * k)) - 4) / 2; ++i) {
-							Triangles.subdivideLongestEdge(s);
-						}
-					} else {
-						for (int i = 0; i < k; ++i) {
-							Quads.subdivideAllEdges(s);
-						}
+					for (int i = 0; i < k; ++i) {
+						Quads.subdivideAllEdges(s);
 					}
 					
 					if (true) {
 						final int w = 1024;
 						final int h = w;
 						final BufferedImage image = DirectDataBufferInt.createBufferedImage(w * 3, h * 2, BufferedImage.TYPE_INT_ARGB, null, null);
-						
-						debugPrint(((DirectDataBufferInt) image.getRaster().getDataBuffer()).getData());
 						
 						{
 							final Graphics2D gr = (Graphics2D) image.getGraphics();
