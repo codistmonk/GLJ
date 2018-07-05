@@ -41,11 +41,12 @@ public final class Demo1 {
 			protected final void setGeometry() {
 				final GL3 gl = this.getGL();
 				
-				this.add("tr 1", newTriangle(gl).setDrawingMode(GL.GL_LINE_LOOP)
+				this.getShaderProgram("sp 3 3").addGeometries(
+						newTriangle(gl).setDrawingMode(GL.GL_LINE_LOOP)
 						.addVertex(0F, 0F, +1F, 1F, 0F, 0F, 1F)
 						.addVertex(1F, 0F, +1F, 0F, 1F, 0F, 1F)
-						.addVertex(0F, 1F, +1F, 0F, 0F, 1F, 1F));
-				this.add("tr 2", newTriangle(gl)
+						.addVertex(0F, 1F, +1F, 0F, 0F, 1F, 1F),
+						newTriangle(gl)
 						.addVertex(0F, 0F, -1F, 0F, 1F, 1F, 1F)
 						.addVertex(1F, 0F, -1F, 1F, 0F, 1F, 1F)
 						.addVertex(0F, 1F, -1F, 1F, 1F, 0F, 1F));
@@ -89,19 +90,18 @@ public final class Demo1 {
 			debugPrint("Renderer:", renderer);
 			debugPrint("Version:", version);
 			
-			this.setGeometry();
 			this.setShaders();
+			this.setGeometry();
 			this.initializeOrbiter();
-		}
-		
-		protected void setGeometry() {
-			// NOP
 		}
 		
 		protected void setShaders() {
 			this.add("sp 3 3", newProgramV3F3(this.getGL()))
-			.addUniformSetters(new UniformMPV(this.getProjectionView().getMatrix()))
-			.addGeometries(this.getGeometries().values());
+			.addUniformSetters(new UniformMPV(this.getProjectionView().getMatrix()));
+		}
+		
+		protected void setGeometry() {
+			// NOP
 		}
 		
 		protected void initializeOrbiter() {
