@@ -149,9 +149,11 @@ public final class Orbiter extends MouseHandler {
 		}
 		
 		if (!event.isControlDown() && !event.isShiftDown() && !event.isAltDown() && !event.isAltGraphDown() && !event.isMetaDown()) {
-			if (event.getWheelRotation() < 0) {
+			final int wheelRotation = event.getWheelRotation();
+			
+			if (wheelRotation < 0) {
 				this.setDistance(this.getDistance() * 0.8F);
-			} else {
+			} else if (wheelRotation > 0) {
 				this.setDistance(this.getDistance() * 1.2F);
 			}
 		}
