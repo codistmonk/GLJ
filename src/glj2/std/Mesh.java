@@ -7,6 +7,8 @@ import glj2.core.VBO;
 import multij.tools.Tools;
 
 import java.awt.image.BufferedImage;
+import java.awt.image.DataBuffer;
+import java.awt.image.DataBufferInt;
 import java.nio.Buffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
@@ -72,7 +74,15 @@ public final class Mesh implements Geometry {
 		this.image = image;
 		final int w = image.getWidth();
 		final int h = image.getHeight();
-		final IntBuffer data = ((DirectDataBufferInt) this.image.getRaster().getDataBuffer()).getData();
+		final DataBuffer dataBuffer = this.image.getRaster().getDataBuffer();
+		final IntBuffer data;
+		
+		if (dataBuffer instanceof DirectDataBufferInt) {
+			data = ((DirectDataBufferInt) dataBuffer).getData();
+		} else {
+			data = IntBuffer.wrap(((DataBufferInt) dataBuffer).getData());
+		}
+		
 		final GL3 gl = this.getVAO().getGL();
 		
 		if (this.texture == null) {
