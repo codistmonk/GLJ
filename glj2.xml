@@ -20,7 +20,7 @@
             <fileset dir="bin"/>
             <fileset dir="src"/>
             <fileset includes="lib/*-natives-*.jar" dir="."/>
-            <zipfileset excludes="META-INF/*.SF" src="lib/aprog.jar"/>
+            <zipfileset excludes="META-INF/*.SF" src="lib/multij-1.8.201807021048.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="lib/vecmath.jar"/>
         	<zipfileset excludes="META-INF/*.SF" src="lib/gluegen-rt.jar"/>
             <zipfileset excludes="META-INF/*.SF" src="lib/gluegen.jar"/>
